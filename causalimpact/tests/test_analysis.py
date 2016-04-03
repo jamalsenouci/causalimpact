@@ -104,7 +104,6 @@ class TestFormatInput(object):
                             ]
                            ]
         for bad_pre_period in bad_pre_periods:
-            print(bad_pre_period)
             assert_raises(ValueError, format_input, self.data, bad_pre_period,
                           self.post_period, self.model_args, None, None,
                           self.alpha)
@@ -142,13 +141,43 @@ class TestFormatInput(object):
                       bad_post_period, self.model_args, None, None,
                       self.alpha)
 
-        ok_data = pd.DataFrame([0, 1, 2, 3])
-        ok_pre_period = [int(0), int(2)]
-        ok_post_period = [int(3), int(3)]
-        format_input(ok_data, ok_pre_period, ok_post_period,
-                     self.model_args, None, None, self.alpha)
+    # Test bad <model.args>
+    def test_bad_model_args(self):
+        bad_model_args = [1000, "niter = 1000"]
+        for bad_model_arg in bad_model_args:
+            assert_raises(TypeError, format_input, self.data, self.pre_period,
+                          self.post_period, bad_model_arg, None, None,
+                          self.alpha)
 
-        ok_pre_period = [0, 3]
-        ok_post_period = [3, 3]
-        format_input(ok_data, ok_pre_period, ok_post_period,
-                     self.model_args, None, None, self.alpha)
+    def test_bad_standardize(self):
+        bad_standardize_data = [np.nan, 123, "foo", [True, False]]
+        for bad_standardize in bad_standardize_data:
+            bad_model_args = {"standardize_data": bad_standardize}
+            assert_raises(ValueError, format_input, self.data, self.pre_period,
+                          self.post_period, bad_model_args, None, None,
+                          self.alpha)
+
+    """ Test bad <bsts.model>
+    def test_bad_bsts(self):
+        bad_bsts_models = [None, np.nan, 1, [1, 2, 3]]
+        for bad_bsts_model in bad_bsts_models:
+            assert_raises(ValueError, format_input, None, None, None, None,
+                          bad_bsts_model, self.post_period_response, self.alpha)
+    """
+
+    # Test bad <post.period.response>
+    # Note that consistency with bsts.model is not tested in format_input()
+    def test_bad_post_period_response(self):
+        bad_post_period_response = [datetime.strptime("2011-01-01", "%Y-%M-%d"), True]
+        for bad_response in bad_post_period_response:
+            print(bad_response)
+            assert_raises(ValueError, format_input, None, None, None, None,
+                          self.bsts_model, bad_response, self.alpha)
+
+    # Test bad <alpha>
+    def test_bad_alpha(self):
+        bad_alphas = [None, np.nan, -1, 0, 1, [0.8, 0.9], "0.1"]
+        for bad_alpha in bad_alphas:
+            assert_raises(ValueError, format_input, self.data, self.pre_period,
+                          self.post_period, self.model_args, None, None,
+                          bad_alpha)

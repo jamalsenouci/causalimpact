@@ -1,7 +1,9 @@
 # from statsmodels import bsts
 import pandas as pd
 from pandas.core.common import PandasError
+from pandas.util.testing import is_list_like
 import numpy as np
+
 
 def _format_input_data(data):
     """Checks and formats the <data> argument provided to CausalImpact().
@@ -70,9 +72,9 @@ def _format_input_prepost(pre_period, post_period, data):
             pre_period = [float(elem) for elem in pre_period]
             post_period = [float(elem) for elem in post_period]
         else:
-            raise ValueError("pre_period (" + pre_dtype.name + ") and post_period (" +\
-                    post_dtype.name + ") should have the same class as the " +\
-                    "time points in the data (" + data.index.dtype.name + ")")
+            raise ValueError("pre_period (" + pre_dtype.name + ") and post_period (" +
+                             post_dtype.name + ") should have the same class as the " +
+                             "time points in the data (" + data.index.dtype.name + ")")
 
     if pre_period[0] < data.index.min():
         print("Setting pre_period[1] to start of data: " + str(data.index.min()))
@@ -119,9 +121,9 @@ def _format_input(data, pre_period, post_period, model_args, bsts_model, post_pe
 
     data_model_args = [True, True, True, False, False]
     bsts_model_args = [False, False, False, True, True]
-    
+
     if np.any(pd.isnull(args) != data_model_args) and np.any(pd.isnull(args) != bsts_model_args):
-        raise SyntaxError("must either provide data, pre_period, post_period, model_args " +\
+        raise SyntaxError("must either provide data, pre_period, post_period, model_args " +
                           "or bsts_model and post_period_response")
 
     # Check <data> and convert to Pandas DataFrame, with rows representing time points
@@ -135,12 +137,12 @@ def _format_input(data, pre_period, post_period, model_args, bsts_model, post_pe
         post_period = checked["post_period"]
 
     # Parse <model_args>, fill gaps using <_defaults>
-    
+
     _defaults = {"niter": 1000, "standardize_data": True,
-             "prior_level_sd": 0.01,
-             "nseasons": 1,
-             "season_duration": 1,
-             "dynamic_regression": False}
+                 "prior_level_sd": 0.01,
+                 "nseasons": 1,
+                 "season_duration": 1,
+                 "dynamic_regression": False}
 
     if model_args is None:
         model_args = _defaults
@@ -159,22 +161,26 @@ def _format_input(data, pre_period, post_period, model_args, bsts_model, post_pe
     """ Check <bsts_model> TODO
     if bsts_model is not None:
         if type(bsts_model) != bsts:
-            raise "bsts_model must be an object of class statsmodels.bsts"
+            raise ValueError("bsts_model must be an object of class statsmodels.bsts")
     """
 
     # Check <post_period_response>
     if bsts_model is not None:
-        if post_period_response is None:
-            raise ValueError("post_period_response cannot be None")
+        if not is_list_like(post_period_response):
+            raise ValueError("post_period_response must be list-like")
+        if np.array(post_period_response).dtype.num == 17:
+            raise ValueError("post_period_response should not be datetime values")
         if not np.all(np.isreal(post_period_response)):
             raise ValueError("post_period_response must contain all real values")
 
     # Check <alpha>
+    if alpha is None:
+        raise ValueError("alpha must not be None")
     if not np.isreal(alpha):
         raise ValueError("alpha must be a real number")
     if np.isnan(alpha):
         raise ValueError("alpha must not be NA")
-    if alpha < 0 or alpha > 1:
+    if alpha <= 0 or alpha >= 1:
         raise ValueError("alpha must be between 0 and 1")
 
     # Return updated arguments

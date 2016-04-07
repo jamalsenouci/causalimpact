@@ -4,13 +4,14 @@ Unit Tests for analysis module
 
 from nose.tools import assert_raises, assert_equal
 
+import numpy as np
 import pandas as pd
 from pandas.core.common import PandasError
 from pandas.util.testing import assert_frame_equal
 
-import numpy as np
-from datetime import datetime
 from causalimpact.analysis import _format_input as format_input
+from causalimpact.analysis import CausalImpact
+
 
 _expected_columns = ["response", "cum.response",
                      "point.pred", "point.pred.lower", "point.pred.upper",
@@ -99,7 +100,7 @@ class TestFormatInput(object):
         bad_pre_periods = [1,
                            [1, 2, 3],
                            [np.nan, 2],
-                           [datetime.strptime(date, "%Y-%M-%d") for date in
+                           [pd.to_datetime(date) for date in
                             ["2011-01-01", "2011-12-31"]
                             ]
                            ]
@@ -113,7 +114,7 @@ class TestFormatInput(object):
         bad_post_periods = [1,
                             [1, 2, 3],
                             [np.nan, 2],
-                            [datetime.strptime(date, "%Y-%M-%d") for date in ["2011-01-01", "2011-12-31"]
+                            [pd.to_datetime(date) for date in ["2011-01-01", "2011-12-31"]
                              ]
                             ]
         for bad_post_period in bad_post_periods:
@@ -168,7 +169,7 @@ class TestFormatInput(object):
     # Test bad <post.period.response>
     # Note that consistency with bsts.model is not tested in format_input()
     def test_bad_post_period_response(self):
-        bad_post_period_response = [datetime.strptime("2011-01-01", "%Y-%M-%d"), True]
+        bad_post_period_response = [pd.datetime("2011-01-01"), True]
         for bad_response in bad_post_period_response:
             print(bad_response)
             assert_raises(ValueError, format_input, None, None, None, None,
@@ -181,3 +182,9 @@ class TestFormatInput(object):
             assert_raises(ValueError, format_input, self.data, self.pre_period,
                           self.post_period, self.model_args, None, None,
                           bad_alpha)
+
+
+class TestRunWithData(object):
+    # Test missing input
+    def test_missing_input():
+        assert_raises(TypeError, CausalImpact())

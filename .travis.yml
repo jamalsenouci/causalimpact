@@ -24,9 +24,9 @@ before_install:
   # Useful for debugging any issues with conda
   - conda info -a
 install:
-  - DEPS="numpy scipy pandas pip statsmodels nose";
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION $DEPS;
-  - source activate test-environment;
+  - DEPS="numpy scipy pandas pip statsmodels nose"
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION $DEPS
+  - source activate test-environment
   - python setup.py install
 script:
   - nosetests

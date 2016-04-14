@@ -325,8 +325,8 @@ class CausalImpact(object):
         """Prints a summary of the results.
 
         Args:
-            digits: Number of digits to print for all numbers.
-"""
+            digits: Number of digits to print for all numbers."""
+        # TODO finish this task
         # Check input
         # Print title
         print("Posterior inference {CausalImpact}")

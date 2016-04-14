@@ -1,27 +1,27 @@
-"""
-Unit Tests for analysis module
-"""
+"""Unit Tests for analysis module."""
 
-from nose.tools import assert_raises, assert_equal
+from nose.tools import assert_equal
+from nose.tools import assert_raises
 
 import numpy as np
 import pandas as pd
 from pandas.core.common import PandasError
 from pandas.util.testing import assert_frame_equal
 
-from causalimpact.analysis import _format_input as format_input
 from causalimpact.analysis import CausalImpact
+format_input = CausalImpact._format_input
 
 
 _expected_columns = ["response", "cum.response",
                      "point.pred", "point.pred.lower", "point.pred.upper",
                      "cum.pred", "cum.pred.lower", "cum.pred.upper",
                      "point.effect", "point.effect.lower",
-                     "point.effect.upper", "cum.effect", "cum.effect.lower",
-                     "cum.effect.upper"]
+                     "point.effect.upper", "cum.effect",
+                     "cum.effect.lower", "cum.effect.upper"]
 
 
-class TestFormatInput(object):
+class TestFormatInput(CausalImpact):
+    """Tests for formatting input for CausalImpact."""
 
     def __init__(self):
         # Specify some healthy input variables
@@ -41,15 +41,18 @@ class TestFormatInput(object):
                     "model_args": self.model_args, "bsts_model": None,
                     "post_period_response": None, "alpha": self.alpha}
 
-        result = format_input(self.data, self.pre_period, self.post_period,
-                              self.model_args, None, None, self.alpha)
+        result = format_input(self, self.data, self.pre_period,
+                              self.post_period, self.model_args, None,
+                              None, self.alpha)
 
         result_data = result["data"]
         expected_data = expected["data"]
         result_model_args = result["model_args"]
         expected_model_args = expected["model_args"]
-        result_other = {key: result[key] for key in result if key not in ["model_args", "data"]}
-        expected_other = {key: expected[key] for key in expected if key not in ["model_args", "data"]}
+        result_other = {key: result[key] for key in result
+                        if key not in ["model_args", "data"]}
+        expected_other = {key: expected[key] for key in expected
+                          if key not in ["model_args", "data"]}
 
         assert_frame_equal(result_data, expected_data)
         assert_equal(result_model_args["niter"], expected_model_args["niter"])
@@ -57,21 +60,26 @@ class TestFormatInput(object):
 
     # Test bsts.model input (usage scenario 2)
     def test_bsts_input(self):
-        expected = {"data": None, "pre_period": None, "post_period": None, "model_args": None, "bsts_model": self.bsts_model,
-                    "post_period_response": self.post_period_response, "alpha": self.alpha}
-        checked = format_input(None, None, None, None, self.bsts_model,
+        expected = {"data": None, "pre_period": None, "post_period": None,
+                    "model_args": None, "bsts_model": self.bsts_model,
+                    "post_period_response": self.post_period_response,
+                    "alpha": self.alpha}
+        checked = format_input(self, None, None, None, None, self.bsts_model,
                                self.post_period_response, self.alpha)
 
-        checked_other = {key: checked[key] for key in checked if key not in ["model_args"]}
-        expected_other = {key: expected[key] for key in expected if key not in ["model_args"]}
+        checked_other = {key: checked[key] for key in checked
+                         if key not in ["model_args"]}
+        expected_other = {key: expected[key] for key in expected
+                          if key not in ["model_args"]}
 
         assert_equal(checked_other, expected_other)
 
     # Test inconsistent input (must not provide both data and bsts.model)
     def test_inconsistency_raises_error(self):
-        assert_raises(SyntaxError, format_input, self.data, self.pre_period,
-                      self.post_period, self.model_args, self.bsts_model,
-                      self.post_period_response, self.alpha)
+        assert_raises(SyntaxError, format_input, self, self.data,
+                      self.pre_period, self.post_period, self.model_args,
+                      self.bsts_model, self.post_period_response,
+                      self.alpha)
 
     # Test that <data> is converted to pandas DataFrame
     def test_format_output_is_df(self):
@@ -85,15 +93,17 @@ class TestFormatInput(object):
                        ]
 
         for funny_data in funny_datas:
-            checked = format_input(funny_data, [0, 3], [3, 3], self.model_args,
-                                   None, None, self.alpha)
-            assert(np.all(np.equal(checked["data"].values, expected_data.values)))
+            checked = format_input(self, funny_data, [0, 3], [3, 3],
+                                   self.model_args, None, None,
+                                   self.alpha)
+            assert(np.all(np.equal(checked["data"].values,
+                                   expected_data.values)))
 
     # Test bad <data>
     def test_bad_data(self):
         text_data = "foo"
-        assert_raises(PandasError, format_input, text_data, [0, 3], [3, 3],
-                      self.model_args, None, None, self.alpha)
+        assert_raises(PandasError, format_input, self, text_data, [0, 3],
+                      [3, 3], self.model_args, None, None, self.alpha)
 
     # Test bad <pre_period>
     def test_bad_pre_period(self):
@@ -105,22 +115,23 @@ class TestFormatInput(object):
                             ]
                            ]
         for bad_pre_period in bad_pre_periods:
-            assert_raises(ValueError, format_input, self.data, bad_pre_period,
-                          self.post_period, self.model_args, None, None,
-                          self.alpha)
+            assert_raises(ValueError, format_input, self, self.data,
+                          bad_pre_period, self.post_period,
+                          self.model_args, None, None, self.alpha)
 
     # Test bad <post.period>
     def test_bad_post_period(self):
         bad_post_periods = [1,
                             [1, 2, 3],
                             [np.nan, 2],
-                            [pd.to_datetime(date) for date in ["2011-01-01", "2011-12-31"]
+                            [pd.to_datetime(date) for date in
+                             ["2011-01-01", "2011-12-31"]
                              ]
                             ]
         for bad_post_period in bad_post_periods:
-            assert_raises(ValueError, format_input, self.data, self.pre_period,
-                          bad_post_period, self.model_args, None, None,
-                          self.alpha)
+            assert_raises(ValueError, format_input, self, self.data,
+                          self.pre_period, bad_post_period,
+                          self.model_args, None, None, self.alpha)
 
     # Test what happens when pre.period/post.period has a different class than
     # the timestamps in <data>
@@ -132,13 +143,13 @@ class TestFormatInput(object):
         bad_pre_period = [0, 3]  # float
         bad_post_period = [3, 3]
 
-        assert_raises(ValueError, format_input, bad_data, bad_pre_period,
+        assert_raises(ValueError, format_input, self, bad_data, bad_pre_period,
                       bad_post_period, self.model_args, None, None,
                       self.alpha)
 
         bad_pre_period = [int(0), int(2)]  # integer
         bad_post_period = [int(3), int(3)]
-        assert_raises(ValueError, format_input, bad_data, bad_pre_period,
+        assert_raises(ValueError, format_input, self, bad_data, bad_pre_period,
                       bad_post_period, self.model_args, None, None,
                       self.alpha)
 
@@ -146,45 +157,47 @@ class TestFormatInput(object):
     def test_bad_model_args(self):
         bad_model_args = [1000, "niter = 1000"]
         for bad_model_arg in bad_model_args:
-            assert_raises(TypeError, format_input, self.data, self.pre_period,
-                          self.post_period, bad_model_arg, None, None,
-                          self.alpha)
+            assert_raises(TypeError, format_input, self, self.data,
+                          self.pre_period, self.post_period,
+                          bad_model_arg, None, None, self.alpha)
 
     def test_bad_standardize(self):
         bad_standardize_data = [np.nan, 123, "foo", [True, False]]
         for bad_standardize in bad_standardize_data:
             bad_model_args = {"standardize_data": bad_standardize}
-            assert_raises(ValueError, format_input, self.data, self.pre_period,
-                          self.post_period, bad_model_args, None, None,
-                          self.alpha)
+            assert_raises(ValueError, format_input, self, self.data,
+                          self.pre_period, self.post_period,
+                          bad_model_args, None, None, self.alpha)
 
     """ Test bad <bsts.model>
     def test_bad_bsts(self):
         bad_bsts_models = [None, np.nan, 1, [1, 2, 3]]
         for bad_bsts_model in bad_bsts_models:
-            assert_raises(ValueError, format_input, None, None, None, None,
-                          bad_bsts_model, self.post_period_response, self.alpha)
+            assert_raises(ValueError, format_input, self, None, None,
+                          None, None, bad_bsts_model,
+                          self.post_period_response, self.alpha)
     """
 
     # Test bad <post.period.response>
     # Note that consistency with bsts.model is not tested in format_input()
     def test_bad_post_period_response(self):
-        bad_post_period_response = [pd.datetime("2011-01-01"), True]
+        bad_post_period_response = [pd.to_datetime("2011-01-01"), True]
         for bad_response in bad_post_period_response:
             print(bad_response)
-            assert_raises(ValueError, format_input, None, None, None, None,
-                          self.bsts_model, bad_response, self.alpha)
+            assert_raises(ValueError, format_input, self, None, None,
+                          None, None, self.bsts_model, bad_response,
+                          self.alpha)
 
     # Test bad <alpha>
     def test_bad_alpha(self):
         bad_alphas = [None, np.nan, -1, 0, 1, [0.8, 0.9], "0.1"]
         for bad_alpha in bad_alphas:
-            assert_raises(ValueError, format_input, self.data, self.pre_period,
-                          self.post_period, self.model_args, None, None,
-                          bad_alpha)
+            assert_raises(ValueError, format_input, self, self.data,
+                          self.pre_period, self.post_period,
+                          self.model_args, None, None, bad_alpha)
 
 
 class TestRunWithData(object):
     # Test missing input
-    def test_missing_input():
+    def test_missing_input(self):
         assert_raises(TypeError, CausalImpact())

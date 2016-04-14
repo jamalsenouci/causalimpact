@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import sys
-from os import path, getcwd
+from os import path
+from os import getcwd
 
 
 def run(verbosity=1, doctest=False, numpy=True):

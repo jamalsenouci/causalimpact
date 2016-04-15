@@ -24,7 +24,7 @@ def standardize(y):
     if not np.isnan(y_sd) and y_sd > 0:
         y = y / y_sd
 
-    return [y, unstandardize(y, y_mu, y_sd)]
+    return {"y": y, "unstandardize": unstandardize(y, y_mu, y_sd)}
 
 
 def unstandardize(y, y_mu, y_sd):

@@ -200,4 +200,4 @@ class TestFormatInput(CausalImpact):
 class TestRunWithData(object):
     # Test missing input
     def test_missing_input(self):
-        assert_raises(TypeError, CausalImpact())
+        assert_raises(SyntaxError, CausalImpact)

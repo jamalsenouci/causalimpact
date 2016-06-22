@@ -1,13 +1,12 @@
 import numpy as np
 
-
 def standardize(y):
     """ Standardizes a vector {y} (to obtain mean 0 and SD 1). The original
       vector can be restored using {UnStandardize()}, which is a function
       that is supplied as part of the return value.
 
         Args:
-            y: numeric list (may contain {NA} values)
+            y: list-like (may contain {NA} values)
 
         Returns:
             list of:
@@ -18,8 +17,12 @@ def standardize(y):
             x = [1, 2, 3, 4, 5]
             result = causalimpact.standardize(x)
             y = result["unstandardize"](result["y"])"""
+    from pandas.util.testing import is_list_like
+    if not is_list_like(y):
+        raise TypeError("y is not list-like")
+
     y_mu = np.nanmean(y)
-    y_sd = np.nanstd(y)
+    y_sd = np.nanstd(y, ddof=1)
     y = (y - y_mu)
     if not np.isnan(y_sd) and y_sd > 0:
         y = y / y_sd

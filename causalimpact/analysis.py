@@ -154,7 +154,7 @@ class CausalImpact(object):
 
         if np.any(pd.isnull(args) != data_model_args) and \
            np.any(pd.isnull(args) != bsts_model_args):
-            raise TypeError("must either provide data, pre_period, post_period,\
+            raise SyntaxError("must either provide data, pre_period, post_period,\
                             model_args or bsts_model and post_period_response")
 
         # Check <data> and convert to Pandas DataFrame, with rows

@@ -1,18 +1,23 @@
-# from statsmodels.api.statespace import bsts
 import numpy as np
 import pandas as pd
 from pandas.core.common import PandasError
 from pandas.util.testing import is_list_like
 
+from causalimpact.misc import standardize_all_variables
+from causalimpact.model import construct_model
+from causalimpact.inferences import compile_posterior_inferences
 
 class CausalImpact(object):
     def __init__(self, data=None, pre_period=None, post_period=None,
-                 model_args=None, bsts_model=None, post_period_response=None,
+                 model_args=None, ucm_model=None, post_period_response=None,
                  alpha=0.05):
-        self.impact = None
+        self.series = None
+        self.summary = None
+        self.report = None
+        self.model = {}
 
         kwargs = self._format_input(data, pre_period, post_period, model_args,
-                                    bsts_model, post_period_response, alpha)
+                                    ucm_model, post_period_response, alpha)
 
         # Depending on input, dispatch to the appropriate Run* method()
         if data is not None:
@@ -20,12 +25,12 @@ class CausalImpact(object):
                                 kwargs["post_period"], kwargs["model_args"],
                                 kwargs["alpha"])
         else:
-            self._run_with_bsts(kwargs["bsts_model"],
+            self._run_with_ucm(kwargs["ucm_model"],
                                 kwargs["post_period_response"],
                                 kwargs["alpha"])
 
     def _format_input_data(self, data):
-        """Checks and formats the <data> argument provided to CausalImpact().
+        """Check and format the data argument provided to CausalImpact().
 
         Args:
             data: Pandas DataFrame
@@ -53,14 +58,13 @@ class CausalImpact(object):
 
         # Must not have NA in covariates (if any)
         if len(data.columns) >= 2:
-            if np.any(pd.isnull(data.ix[:, 1:])):
+            if np.any(pd.isnull(data.iloc[:, 1:])):
                 raise ValueError("covariates must not contain null values")
 
         return data
 
     def _format_input_prepost(self, pre_period, post_period, data):
-        """Checks and formats the <pre_period> and <post_period>
-           input arguments_
+        """Check and format the pre_period and post_period input arguments.
 
         Args:
             pre_period: two-element list
@@ -125,16 +129,16 @@ class CausalImpact(object):
         return {"pre_period": pre_period, "post_period": post_period}
 
     def _format_input(self, data, pre_period, post_period, model_args,
-                      bsts_model, post_period_response, alpha):
-        """Checks and formats all input arguments supplied to CausalImpact()
+                      ucm_model, post_period_response, alpha):
+        """Check and format all input arguments supplied to CausalImpact().
            See the documentation of CausalImpact() for details
 
         Args:
             data:                 Pandas DataFrame or data frame
             pre_period:           beginning and end of pre-period
             post_period:          beginning and end of post-period
-            model_args:           list of additional arguments for the model
-            bsts_model:           fitted bsts model (instead of data)
+            model_args:           dict of additional arguments for the model
+            ucm_model:            UnobservedComponents model (instead of data)
             post_period_response: observed response in the post-period
             alpha:                tail-area for posterior intervals
 
@@ -146,16 +150,16 @@ class CausalImpact(object):
         import pandas as pd
 
         # Check that a consistent set of variables has been provided
-        args = [data, pre_period, post_period, bsts_model,
+        args = [data, pre_period, post_period, ucm_model,
                 post_period_response]
 
         data_model_args = [True, True, True, False, False]
-        bsts_model_args = [False, False, False, True, True]
+        ucm_model_args = [False, False, False, True, True]
 
         if np.any(pd.isnull(args) != data_model_args) and \
-           np.any(pd.isnull(args) != bsts_model_args):
+           np.any(pd.isnull(args) != ucm_model_args):
             raise SyntaxError("must either provide data, pre_period, post_period,\
-                            model_args or bsts_model and post_period_response")
+                            model_args or ucm_model and post_period_response")
 
         # Check <data> and convert to Pandas DataFrame, with rows
         # representing time points
@@ -192,15 +196,15 @@ class CausalImpact(object):
             raise ValueError("model_args_standardize_data must be a \
                              boolean value")
 
-        """ Check <bsts_model> TODO
-        if bsts_model is not None:
-            if type(bsts_model) != bsts:
-                raise ValueError("bsts_model must be an object of class \
-                                 statsmodels_bsts")
+        """ Check <ucm_model> TODO
+        if ucm_model is not None:
+            if type(ucm_model) != ucm:
+                raise ValueError("ucm_model must be an object of class \
+                                 statsmodels_ucm")
         """
 
         # Check <post_period_response>
-        if bsts_model is not None:
+        if ucm_model is not None:
             if not is_list_like(post_period_response):
                 raise ValueError("post_period_response must be list-like")
             if np.array(post_period_response).dtype.num == 17:
@@ -223,38 +227,38 @@ class CausalImpact(object):
         # Return updated arguments
         kwargs = {"data": data, "pre_period": pre_period,
                   "post_period": post_period, "model_args": model_args,
-                  "bsts_model": bsts_model,
+                  "ucm_model": ucm_model,
                   "post_period_response": post_period_response, "alpha": alpha}
         return kwargs
 
     def _run_with_data(self, data, pre_period, post_period, model_args, alpha):
         # Zoom in on data in modeling range
 
-        first_non_null = pd.isnull(data.ix[:, 1]).nonzero()[0]
+        first_non_null = pd.isnull(data.iloc[:, 1]).nonzero()[0]
         if len(first_non_null) > 0:
             pre_period[0] = max(pre_period[0], data.index[first_non_null[0]])
-        data_modeling = data.ix[pre_period[0]:post_period[1], :]
+        data_modeling = data.iloc[pre_period[0]:post_period[1], :]
 
         # Standardize all variables?
-        unstandardize = np.identity
+        orig_std_params = np.identity
         if model_args["standardize_data"]:
             sd_results = standardize_all_variables(data_modeling)
             data_modeling = sd_results["data"]
-            unstandardize = sd_results["unstandardize"]
+            orig_std_params = sd_results["orig_std_params"]
 
         # Set observed response in post-period to NA
-        data_modeling.ix[post_period[0]:, 1] = np.nan
+        data_modeling.iloc[post_period[0]:, 1] = np.nan
 
         # Construct model and perform inference
-        bsts_model = construct_model(data_modeling, model_args)
+        ucm_model = construct_model(data_modeling, model_args)
 
         # Compile posterior inferences
-        if bsts_model is not None:
-            y_post = data.ix[post_period[0]:post_period[1], 1]
-            inferences = compile_posterior_inferences(bsts_model, y_post,
-                                                      alpha, unstandardize)
+        if ucm_model is not None:
+            data_post = data.iloc[post_period[0]:post_period[1], :]
+            inferences = compile_posterior_inferences(ucm_model, data_post,
+                                                      alpha, orig_std_params)
         else:
-            inferences = compile_na_inferences(data.ix[:, 1])
+            inferences = compile_na_inferences(data.iloc[:, 1])
 
         # Extend <series> to cover original range
         # (padding with NA as necessary)
@@ -263,69 +267,71 @@ class CausalImpact(object):
                                         left_index=True, right_index=True,
                                         how="outer")
         if len(inferences["series"]) != len(data):
-            raise ValueError("inferences['series'] must have the same number \
-                             of rows as 'data'")
+            raise ValueError("""inferences['series'] must have the same number
+                             of rows as 'data'""")
 
         # Replace <y.model> by full original response
-        inferences["series"].ix[:, 1] = data[:, 1]
+        inferences["series"].iloc[:, 0] = data[:, 0]
 
         # Assign response-variable names
-        inferences["series"][:, 1].name = "response"
-        inferences["series"][:, 2].name = "cum.response"
+        inferences["series"].iloc[:, 0].name = "response"
+        inferences["series"].iloc[:, 1].name = "cum.response"
 
         # Return 'CausalImpact' object
-        model = {"pre_period": pre_period, "post_period": post_period,
-                 "model_args": model_args, "bsts_model": bsts_model,
-                 "alpha": alpha}
+        params = {"pre_period": pre_period, "post_period": post_period,
+                 "model_args": model_args, "alpha": alpha}
 
-        self.series = inferences["series"]
+        self.inferences = inferences["series"]
         self.summary = inferences["summary"]
         self.report = inferences["report"]
         self.model = model
+        self.params = params
 
-    def _run_with_bsts(self, bsts_model, post_period_response, alpha):
-        """ Runs an impact analysis on top of a fitted bsts model.
+    def _run_with_ucm(self, ucm_model, post_period_response, alpha):
+        """ Runs an impact analysis on top of a ucm model.
 
            Args:
-             bsts_model: fitted model, as returned by bsts(), in which the
-                         data during the post-period was set to NA
+             ucm_model: Model as returned by UnobservedComponents(),
+                        in which the data during the post-period was set to NA
              post_period_response: observed data during the post-intervention
                                    period
              alpha: tail-probabilities of posterior intervals"""
         # Guess <pre_period> and <post_period> from the observation vector
         # These will be needed for plotting period boundaries in plot().
-        y = bsts_model["original_series"]
+        y = ucm_model["original_series"]
         try:
             indices = infer_period_indices_from_data(y)
         except ValueError:
-            raise ValueError("bsts.model must have been fitted on data where \
+            raise ValueError("ucm_model must have been fitted on data where \
                              the values in the post-intervention period have \
                              been set to NA")
 
         # Compile posterior inferences
-        inferences = compile_posterior_inferences(bsts_model=bsts_model,
+        inferences = compile_posterior_inferences(ucm_model=ucm_model,
                                                   y_post=post_period_response,
                                                   alpha=alpha)
 
         # Assign response-variable names
-        # N.B. The modeling period comprises everything found in bsts, so the
+        # N.B. The modeling period comprises everything found in ucm, so the
         # actual observed data is equal to the data in the modeling period
-        inferences["series"].columns = ["response", "cum.response"]
+        inferences["series"].columns = ["response", "cum_response"]
 
         # Return 'CausalImpact' object
-        model = {"pre_period": pre_period, "post_period": post_period,
-                 "bsts_model": bsts_model, "alpha": alpha}
+        params = {"pre_period": pre_period, "post_period": post_period,
+                 "model_args": model_args, "alpha": alpha}
 
-        self.series = inferences["series"]
+        self.inferences = inferences["series"]
         self.summary = inferences["summary"]
         self.report = inferences["report"]
         self.model = model
+        self.params = params
 
     def _print_summary(self, digits=2):
-        """Prints a summary of the results.
+        """Print a summary of the results.
 
         Args:
-            digits: Number of digits to print for all numbers."""
+            digits: Number of digits to print for all numbers.
+        """
         # TODO finish this task
         # Check input
         # Print title

@@ -1,37 +1,33 @@
-import numpy as np
+def standardize_all_variables(data):
+    """Standardize all columns of a given time series.
+          Args:
+              data: Pandas DataFrame with one or more columns
 
-def standardize(y):
-    """ Standardizes a vector {y} (to obtain mean 0 and SD 1). The original
-      vector can be restored using {UnStandardize()}, which is a function
-      that is supplied as part of the return value.
+          Returns:
+              list of:
+                  data: standardized data
+                  UnStandardize: function for undoing the transformation of the
+                  first column in the provided data
+    """
+    data_mu = data.mean(skipna=True)
+    data_sd = data.std(skipna=True)
+    data = (data - data_mu)
+    data_sd = data_sd.fillna(1)
 
-        Args:
-            y: list-like (may contain {NA} values)
+    data[data != 0] = data[data != 0] / data_sd
 
-        Returns:
-            list of:
-                y: standardized version of the input
-                UnStandardize: function that restores the original data
+    y_mu = data_mu[0]
+    y_sd = data_sd[0]
 
-        Examples:
-            x = [1, 2, 3, 4, 5]
-            result = causalimpact.standardize(x)
-            y = result["unstandardize"](result["y"])"""
-    from pandas.util.testing import is_list_like
-    if not is_list_like(y):
-        raise TypeError("y is not list-like")
-
-    y_mu = np.nanmean(y)
-    y_sd = np.nanstd(y, ddof=1)
-    y = (y - y_mu)
-    if not np.isnan(y_sd) and y_sd > 0:
-        y = y / y_sd
-
-    return {"y": y, "unstandardize": unstandardize(y, y_mu, y_sd)}
+    return {"data": data, "orig_std_params": (y_mu, y_sd)}
 
 
-def unstandardize(y, y_mu, y_sd):
-    if not np.isnan(y_sd) and y_sd > 0:
-        y = y * y_sd
-    y = y + y_mu
-    return y
+def unstandardize(data, orig_std_params):
+    """Function for reversing the standardization of the first column in the
+    provided data.
+    """
+    y_mu = orig_std_params[0]
+    y_sd = orig_std_params[1]
+    data = data.mul(y_sd, axis=1)
+    data = data.add(y_mu, axis=1)
+    return data

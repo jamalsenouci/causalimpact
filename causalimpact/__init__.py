@@ -7,5 +7,4 @@ see https://github.com/google/CausalImpact
 """
 
 from causalimpact.analysis import CausalImpact  # noqa
-from causalimpact import misc
 from causalimpact.tests.test import run as test  # noqa

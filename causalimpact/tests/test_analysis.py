@@ -30,7 +30,7 @@ class TestFormatInput(CausalImpact):
         self.pre_period = [0, 100]
         self.post_period = [100, 200]
         self.model_args = {"niter": 123}
-        self.bsts_model = []
+        self.ucm_model = []
         self.post_period_response = np.random.randn(100)
         self.alpha = 0.05
 
@@ -38,7 +38,7 @@ class TestFormatInput(CausalImpact):
     def test_data_input(self):
         expected = {"data": self.data, "pre_period": self.pre_period,
                     "post_period": self.post_period,
-                    "model_args": self.model_args, "bsts_model": None,
+                    "model_args": self.model_args, "ucm_model": None,
                     "post_period_response": None, "alpha": self.alpha}
 
         result = format_input(self, self.data, self.pre_period,
@@ -58,13 +58,13 @@ class TestFormatInput(CausalImpact):
         assert_equal(result_model_args["niter"], expected_model_args["niter"])
         assert_equal(result_other, expected_other)
 
-    # Test bsts.model input (usage scenario 2)
-    def test_bsts_input(self):
+    # Test ucm.model input (usage scenario 2)
+    def test_ucm_input(self):
         expected = {"data": None, "pre_period": None, "post_period": None,
-                    "model_args": None, "bsts_model": self.bsts_model,
+                    "model_args": None, "ucm_model": self.ucm_model,
                     "post_period_response": self.post_period_response,
                     "alpha": self.alpha}
-        checked = format_input(self, None, None, None, None, self.bsts_model,
+        checked = format_input(self, None, None, None, None, self.ucm_model,
                                self.post_period_response, self.alpha)
 
         checked_other = {key: checked[key] for key in checked
@@ -74,11 +74,11 @@ class TestFormatInput(CausalImpact):
 
         assert_equal(checked_other, expected_other)
 
-    # Test inconsistent input (must not provide both data and bsts.model)
+    # Test inconsistent input (must not provide both data and ucm.model)
     def test_inconsistency_raises_error(self):
         assert_raises(SyntaxError, format_input, self, self.data,
                       self.pre_period, self.post_period, self.model_args,
-                      self.bsts_model, self.post_period_response,
+                      self.ucm_model, self.post_period_response,
                       self.alpha)
 
     # Test that <data> is converted to pandas DataFrame
@@ -169,23 +169,23 @@ class TestFormatInput(CausalImpact):
                           self.pre_period, self.post_period,
                           bad_model_args, None, None, self.alpha)
 
-    """ Test bad <bsts.model>
-    def test_bad_bsts(self):
-        bad_bsts_models = [None, np.nan, 1, [1, 2, 3]]
-        for bad_bsts_model in bad_bsts_models:
+    """ Test bad <ucm.model>
+    def test_bad_ucm(self):
+        bad_ucm_models = [None, np.nan, 1, [1, 2, 3]]
+        for bad_ucm_model in bad_ucm_models:
             assert_raises(ValueError, format_input, self, None, None,
-                          None, None, bad_bsts_model,
+                          None, None, bad_ucm_model,
                           self.post_period_response, self.alpha)
     """
 
     # Test bad <post.period.response>
-    # Note that consistency with bsts.model is not tested in format_input()
+    # Note that consistency with ucm.model is not tested in format_input()
     def test_bad_post_period_response(self):
         bad_post_period_response = [pd.to_datetime("2011-01-01"), True]
         for bad_response in bad_post_period_response:
             print(bad_response)
             assert_raises(ValueError, format_input, self, None, None,
-                          None, None, self.bsts_model, bad_response,
+                          None, None, self.ucm_model, bad_response,
                           self.alpha)
 
     # Test bad <alpha>

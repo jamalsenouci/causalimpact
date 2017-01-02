@@ -20,10 +20,10 @@ _expected_columns = ["response", "cum.response",
                      "cum.effect.lower", "cum.effect.upper"]
 
 
-class TestFormatInput(CausalImpact):
+class TestFormatInput(object):
     """Tests for formatting input for CausalImpact."""
 
-    def __init__(self):
+    def __init__(self, CausalImpact):
         # Specify some healthy input variables
         self.data = pd.DataFrame(np.random.randn(200, 3),
                                  columns=["y", "x1", "x2"])

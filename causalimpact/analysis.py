@@ -7,7 +7,9 @@ from causalimpact.misc import standardize_all_variables
 from causalimpact.model import construct_model
 from causalimpact.inferences import compile_posterior_inferences
 
+
 class CausalImpact(object):
+
     def __init__(self, data=None, pre_period=None, post_period=None,
                  model_args=None, ucm_model=None, post_period_response=None,
                  alpha=0.05):
@@ -26,8 +28,8 @@ class CausalImpact(object):
                                 kwargs["alpha"])
         else:
             self._run_with_ucm(kwargs["ucm_model"],
-                                kwargs["post_period_response"],
-                                kwargs["alpha"])
+                               kwargs["post_period_response"],
+                               kwargs["alpha"])
 
     def _format_input_data(self, data):
         """Check and format the data argument provided to CausalImpact().
@@ -101,8 +103,8 @@ class CausalImpact(object):
                 raise ValueError("pre_period (" + pre_dtype.name +
                                  ") and post_period (" + post_dtype.name +
                                  ") should have the same class as the " +
-                                 "time points in the data ("
-                                 + data.index.dtype.name + ")")
+                                 "time points in the data (" +
+                                 data.index.dtype.name + ")")
 
         if pre_period[0] < data.index.min():
             print("Setting pre_period[1] to start of data: " +
@@ -279,7 +281,7 @@ class CausalImpact(object):
 
         # Return 'CausalImpact' object
         params = {"pre_period": pre_period, "post_period": post_period,
-                 "model_args": model_args, "alpha": alpha}
+                  "model_args": model_args, "alpha": alpha}
 
         self.inferences = inferences["series"]
         self.summary = inferences["summary"]
@@ -318,7 +320,7 @@ class CausalImpact(object):
 
         # Return 'CausalImpact' object
         params = {"pre_period": pre_period, "post_period": post_period,
-                 "model_args": model_args, "alpha": alpha}
+                  "model_args": model_args, "alpha": alpha}
 
         self.inferences = inferences["series"]
         self.summary = inferences["summary"]
@@ -365,6 +367,7 @@ class CausalImpact(object):
                              yname=yname, xname=xname, title=title)
 
         return smry"""
+
     def _print_report(self):
         if self.impact["report"] is None:
             print("Report empty")

@@ -6,6 +6,7 @@ from pandas.util.testing import is_list_like
 from causalimpact.misc import standardize_all_variables
 from causalimpact.model import construct_model
 from causalimpact.inferences import compile_posterior_inferences
+from causalimpact.inferences import compile_na_inferences
 
 
 class CausalImpact(object):
@@ -51,8 +52,8 @@ class CausalImpact(object):
         try:
             data = pd.DataFrame(data)
         except PandasError:
-            raise PandasError("could not convert input data to Pandas \
-                              DataFrame")
+            raise PandasError("could not convert input data to Pandas " +
+                              "DataFrame")
 
         # Must have at least 3 time points
         if len(data.index) < 3:
@@ -77,16 +78,16 @@ class CausalImpact(object):
         import pandas as pd
 
         if pre_period is None or post_period is None:
-            raise ValueError("pre_period and post period must not contain \
-                             null values")
+            raise ValueError("pre_period and post period must not contain " +
+                             "null values")
         if type(pre_period) is not list or type(post_period) is not list:
             raise ValueError("pre_period and post_period must bothe be lists")
         if len(pre_period) != 2 or len(post_period) != 2:
-            raise ValueError("pre_period and post_period must both be of \
-                             length 2")
+            raise ValueError("pre_period and post_period must both be of " +
+                             "length 2")
         if np.any(pd.isnull(pre_period)) or np.any(pd.isnull(post_period)):
-            raise ValueError("pre_period and post period must not contain \
-                             null values")
+            raise ValueError("pre_period and post period must not contain " +
+                             "null values")
 
         pre_dtype = np.array(pre_period).dtype
         post_dtype = np.array(post_period).dtype
@@ -122,11 +123,11 @@ class CausalImpact(object):
         if pre_period[1] - pre_period[0] + 1 < 3:
             raise ValueError("pre_period must span at least 3 time points")
         if post_period[1] < post_period[0]:
-            raise ValueError("post_period[1] must not be earlier than \
-                             post_period[0]")
+            raise ValueError("post_period[1] must not be earlier than " +
+                             "post_period[0]")
         if post_period[0] < pre_period[1]:
-            raise ValueError("post_period[0] must not be earlier than \
-                             pre_period[1]")
+            raise ValueError("post_period[0] must not be earlier than " +
+                             "pre_period[1]")
 
         return {"pre_period": pre_period, "post_period": post_period}
 
@@ -160,8 +161,9 @@ class CausalImpact(object):
 
         if np.any(pd.isnull(args) != data_model_args) and \
            np.any(pd.isnull(args) != ucm_model_args):
-            raise SyntaxError("must either provide data, pre_period, post_period,\
-                            model_args or ucm_model and post_period_response")
+            raise SyntaxError("must either provide data, pre_period, " +
+                              "post_period, model_args or ucm_model" +
+                              "and post_period_response")
 
         # Check <data> and convert to Pandas DataFrame, with rows
         # representing time points
@@ -195,8 +197,8 @@ class CausalImpact(object):
 
         # Check <standardize_data>
         if type(model_args["standardize_data"]) != bool:
-            raise ValueError("model_args_standardize_data must be a \
-                             boolean value")
+            raise ValueError("model_args_standardize_data must be a" +
+                             "boolean value")
 
         """ Check <ucm_model> TODO
         if ucm_model is not None:
@@ -210,11 +212,11 @@ class CausalImpact(object):
             if not is_list_like(post_period_response):
                 raise ValueError("post_period_response must be list-like")
             if np.array(post_period_response).dtype.num == 17:
-                raise ValueError("post_period_response should not be \
-                                 datetime values")
+                raise ValueError("post_period_response should not be" +
+                                 "datetime values")
             if not np.all(np.isreal(post_period_response)):
-                raise ValueError("post_period_response must contain all \
-                                 real values")
+                raise ValueError("post_period_response must contain all" +
+                                 "real values")
 
         # Check <alpha>
         if alpha is None:
@@ -286,7 +288,7 @@ class CausalImpact(object):
         self.inferences = inferences["series"]
         self.summary = inferences["summary"]
         self.report = inferences["report"]
-        self.model = model
+        self.model = ucm_model
         self.params = params
 
     def _run_with_ucm(self, ucm_model, post_period_response, alpha):
@@ -304,9 +306,9 @@ class CausalImpact(object):
         try:
             indices = infer_period_indices_from_data(y)
         except ValueError:
-            raise ValueError("ucm_model must have been fitted on data where \
-                             the values in the post-intervention period have \
-                             been set to NA")
+            raise ValueError("ucm_model must have been fitted on data where " +
+                             "the values in the post-intervention period " +
+                             "have been set to NA")
 
         # Compile posterior inferences
         inferences = compile_posterior_inferences(ucm_model=ucm_model,
@@ -382,5 +384,5 @@ class CausalImpact(object):
         elif output == "report":
             self._print_report
         else:
-            raise ValueError("Output argument must be either 'summary' \
-                             or 'report'")
+            raise ValueError("Output argument must be either 'summary' " +
+                             "or 'report'")

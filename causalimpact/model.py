@@ -90,23 +90,4 @@ def construct_model(data, model_args=None):
             return mod
         # Dynamic regression?
         else:
-            """Since we have predictor variables in the model, we need to
-            explicitly make their coefficients time-varying using
-            AddDynamicRegression(). In Bsts(), we are therefore not giving a
-            formula but just the response variable. We are then using SdPrior
-            to only specify the prior on the residual standard deviation.
-
-            prior_mean: precision of random walk of coefficients
-            sigma_mean_prior = gamma_prior(prior_mean=1, a=4)
-            ss = add_dynamic_regression(ss, formula, data=data,
-                                        sigma_mean_prior=sigma_mean_prior)
-            sd_prior = sd_prior(sigma_guess=model_args["prior_level_sd"] * sdy,
-                                upper_limit=0.1 * sdy,
-                                sample_size=kDynamicRegressionPriorSampleSize)
-
-            bsts_model = Bsts(y, state_specification=ss,
-                              niter=model_args["niter"],
-                              expected_model_size=3, ping=0, seed=1,
-                              prior=sd_prior)
-            """
             raise NotImplementedError()

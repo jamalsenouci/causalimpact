@@ -6,7 +6,7 @@ from pandas.util.testing import is_list_like
 from causalimpact.misc import standardize_all_variables
 from causalimpact.model import construct_model, model_fit
 from causalimpact.inferences import compile_posterior_inferences
-from causalimpact.inferences import compile_na_inferences
+# from causalimpact.inferences import compile_na_inferences
 
 
 class CausalImpact(object):
@@ -20,8 +20,9 @@ class CausalImpact(object):
         self.model = {}
         self.data = data.copy()
 
-        kwargs = self._format_input(self.data, pre_period, post_period, model_args,
-                                    ucm_model, post_period_response, alpha)
+        kwargs = self._format_input(self.data, pre_period, post_period,
+                                    model_args, ucm_model,
+                                    post_period_response, alpha)
 
         # Depending on input, dispatch to the appropriate Run* method()
         if self.data is not None:
@@ -236,7 +237,8 @@ class CausalImpact(object):
                   "post_period_response": post_period_response, "alpha": alpha}
         return kwargs
 
-    def _run_with_data(self, data, pre_period, post_period, model_args, alpha, estimation):
+    def _run_with_data(self, data, pre_period, post_period, model_args, alpha,
+                       estimation):
         # Zoom in on data in modeling range
 
         first_non_null = pd.isnull(data.iloc[:, 1]).nonzero()[0]
@@ -245,32 +247,32 @@ class CausalImpact(object):
         data_modeling = data.copy().iloc[pre_period[0]:post_period[0]-1, :]
 
         # Standardize all variables
-        orig_std_params = (0,1)
+        orig_std_params = (0, 1)
         if model_args["standardize_data"]:
             sd_results = standardize_all_variables(data_modeling)
             data_modeling = sd_results["data"]
             orig_std_params = sd_results["orig_std_params"]
-
 
         # Construct model and perform inference
         ucm_model = construct_model(data_modeling, model_args)
         res = model_fit(ucm_model, estimation, model_args["niter"])
 
         exog_post = data.iloc[post_period[0]:post_period[1], 1:]
-        inferences = compile_posterior_inferences(res, exog_post,
-                                              alpha, orig_std_params, estimation)
+        inferences = compile_posterior_inferences(res, exog_post, alpha,
+                                                  orig_std_params, estimation)
 
         params = {"pre_period": pre_period, "post_period": post_period,
                   "model_args": model_args, "alpha": alpha}
 
         # "append" to 'CausalImpact' object
         self.inferences = inferences["series"]
-        #self.summary = inferences["summary"]
-        #self.report = inferences["report"]
+        # self.summary = inferences["summary"]
+        # self.report = inferences["report"]
         self.model = ucm_model
         self.params = params
 
-    def _run_with_ucm(self, ucm_model, post_period_response, alpha, estimation):
+    def _run_with_ucm(self, ucm_model, post_period_response, alpha,
+                      estimation):
         """ Runs an impact analysis on top of a ucm model.
 
            Args:
@@ -281,6 +283,8 @@ class CausalImpact(object):
              alpha: tail-probabilities of posterior intervals"""
         # Guess <pre_period> and <post_period> from the observation vector
         # These will be needed for plotting period boundaries in plot().
+        raise NotImplementedError()
+        """
         y = ucm_model["original_series"]
         try:
             indices = infer_period_indices_from_data(y)
@@ -292,7 +296,8 @@ class CausalImpact(object):
         # Compile posterior inferences
         inferences = compile_posterior_inferences(ucm_model=ucm_model,
                                                   y_post=post_period_response,
-                                                  alpha=alpha, estimation=estimation)
+                                                  alpha=alpha,
+                                                  estimation=estimation)
 
         # Assign response-variable names
         # N.B. The modeling period comprises everything found in ucm, so the
@@ -308,7 +313,7 @@ class CausalImpact(object):
         self.report = inferences["report"]
         self.model = model
         self.params = params
-
+"""
     def _print_summary(self, digits=2):
         """Print a summary of the results.
 

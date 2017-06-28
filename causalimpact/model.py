@@ -57,7 +57,7 @@ def construct_model(data, model_args=None):
       model_args: optional list of additional model arguments
 
     Returns:
-      {bsts_model}, as returned by {Bsts()}
+      An Unobserved Components Model, as returned by UnobservedComponents()
 
     """
     from statsmodels.tsa.statespace.structural import UnobservedComponents
@@ -71,7 +71,7 @@ def construct_model(data, model_args=None):
     # specification params
     ss = {}
     # Local level
-    ss["endog"] = y
+    ss["endog"] = y.values
     ss["level"] = "llevel"
 
     # Add seasonal component?
@@ -83,11 +83,17 @@ def construct_model(data, model_args=None):
         mod = UnobservedComponents(**ss)
         return mod
     else:
-        # Static regression?
+        # Static regression
         if not model_args["dynamic_regression"]:
-            ss["exog"] = data.iloc[:, 1:]
+            ss["exog"] = data.iloc[:, 1:].values
             mod = UnobservedComponents(**ss)
             return mod
-        # Dynamic regression?
+        # Dynamic regression
         else:
             raise NotImplementedError()
+
+def model_fit(model, estimation, niter):
+    if estimation == "MLE":
+        return model.fit(maxiter=niter)
+    else:
+        raise NotImplementedError()

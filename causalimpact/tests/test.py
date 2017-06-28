@@ -19,7 +19,7 @@ def run(verbosity=1, doctest=False, numpy=True):
         import nose
     except ImportError:
         raise ImportError(
-            "The nose package is needed to run the NetworkX tests.")
+            "The nose package is needed to run the causalimpact tests.")
 
     sys.stderr.write("Running causalimpact tests:")
     ci_install_dir = path.join(path.dirname(__file__), path.pardir)

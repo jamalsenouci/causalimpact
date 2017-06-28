@@ -4,7 +4,7 @@ from pandas.core.common import PandasError
 from pandas.util.testing import is_list_like
 
 from causalimpact.misc import standardize_all_variables
-from causalimpact.model import construct_model
+from causalimpact.model import construct_model, model_fit
 from causalimpact.inferences import compile_posterior_inferences
 from causalimpact.inferences import compile_na_inferences
 
@@ -13,24 +13,25 @@ class CausalImpact(object):
 
     def __init__(self, data=None, pre_period=None, post_period=None,
                  model_args=None, ucm_model=None, post_period_response=None,
-                 alpha=0.05):
+                 alpha=0.05, estimation="MLE"):
         self.series = None
         self.summary = None
         self.report = None
         self.model = {}
+        self.data = data.copy()
 
-        kwargs = self._format_input(data, pre_period, post_period, model_args,
+        kwargs = self._format_input(self.data, pre_period, post_period, model_args,
                                     ucm_model, post_period_response, alpha)
 
         # Depending on input, dispatch to the appropriate Run* method()
-        if data is not None:
+        if self.data is not None:
             self._run_with_data(kwargs["data"], kwargs["pre_period"],
                                 kwargs["post_period"], kwargs["model_args"],
-                                kwargs["alpha"])
+                                kwargs["alpha"], estimation)
         else:
             self._run_with_ucm(kwargs["ucm_model"],
                                kwargs["post_period_response"],
-                               kwargs["alpha"])
+                               kwargs["alpha"], estimation)
 
     def _format_input_data(self, data):
         """Check and format the data argument provided to CausalImpact().
@@ -197,7 +198,7 @@ class CausalImpact(object):
 
         # Check <standardize_data>
         if type(model_args["standardize_data"]) != bool:
-            raise ValueError("model_args_standardize_data must be a" +
+            raise ValueError("model_args.standardize_data must be a" +
                              "boolean value")
 
         """ Check <ucm_model> TODO
@@ -235,63 +236,41 @@ class CausalImpact(object):
                   "post_period_response": post_period_response, "alpha": alpha}
         return kwargs
 
-    def _run_with_data(self, data, pre_period, post_period, model_args, alpha):
+    def _run_with_data(self, data, pre_period, post_period, model_args, alpha, estimation):
         # Zoom in on data in modeling range
 
         first_non_null = pd.isnull(data.iloc[:, 1]).nonzero()[0]
         if len(first_non_null) > 0:
             pre_period[0] = max(pre_period[0], data.index[first_non_null[0]])
-        data_modeling = data.iloc[pre_period[0]:post_period[1], :]
+        data_modeling = data.copy().iloc[pre_period[0]:post_period[0]-1, :]
 
-        # Standardize all variables?
-        orig_std_params = np.identity
+        # Standardize all variables
+        orig_std_params = (0,1)
         if model_args["standardize_data"]:
             sd_results = standardize_all_variables(data_modeling)
             data_modeling = sd_results["data"]
             orig_std_params = sd_results["orig_std_params"]
 
-        # Set observed response in post-period to NA
-        data_modeling.iloc[post_period[0]:, 1] = np.nan
 
         # Construct model and perform inference
         ucm_model = construct_model(data_modeling, model_args)
+        res = model_fit(ucm_model, estimation, model_args["niter"])
 
-        # Compile posterior inferences
-        if ucm_model is not None:
-            data_post = data.iloc[post_period[0]:post_period[1], :]
-            inferences = compile_posterior_inferences(ucm_model, data_post,
-                                                      alpha, orig_std_params)
-        else:
-            inferences = compile_na_inferences(data.iloc[:, 1])
+        exog_post = data.iloc[post_period[0]:post_period[1], 1:]
+        inferences = compile_posterior_inferences(res, exog_post,
+                                              alpha, orig_std_params, estimation)
 
-        # Extend <series> to cover original range
-        # (padding with NA as necessary)
-        empty = pd.DataFrame(index=data.index)
-        inferences["series"] = pd.merge(inferences["series"], empty,
-                                        left_index=True, right_index=True,
-                                        how="outer")
-        if len(inferences["series"]) != len(data):
-            raise ValueError("""inferences['series'] must have the same number
-                             of rows as 'data'""")
-
-        # Replace <y.model> by full original response
-        inferences["series"].iloc[:, 0] = data[:, 0]
-
-        # Assign response-variable names
-        inferences["series"].iloc[:, 0].name = "response"
-        inferences["series"].iloc[:, 1].name = "cum.response"
-
-        # Return 'CausalImpact' object
         params = {"pre_period": pre_period, "post_period": post_period,
                   "model_args": model_args, "alpha": alpha}
 
+        # "append" to 'CausalImpact' object
         self.inferences = inferences["series"]
-        self.summary = inferences["summary"]
-        self.report = inferences["report"]
+        #self.summary = inferences["summary"]
+        #self.report = inferences["report"]
         self.model = ucm_model
         self.params = params
 
-    def _run_with_ucm(self, ucm_model, post_period_response, alpha):
+    def _run_with_ucm(self, ucm_model, post_period_response, alpha, estimation):
         """ Runs an impact analysis on top of a ucm model.
 
            Args:
@@ -313,7 +292,7 @@ class CausalImpact(object):
         # Compile posterior inferences
         inferences = compile_posterior_inferences(ucm_model=ucm_model,
                                                   y_post=post_period_response,
-                                                  alpha=alpha)
+                                                  alpha=alpha, estimation=estimation)
 
         # Assign response-variable names
         # N.B. The modeling period comprises everything found in ucm, so the

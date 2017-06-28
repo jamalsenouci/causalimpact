@@ -8,7 +8,7 @@ import pandas as pd
 from pandas.core.common import PandasError
 from pandas.util.testing import assert_frame_equal
 
-from causalimpact.analysis import CausalImpact
+from causalimpact import CausalImpact
 format_input = CausalImpact._format_input
 
 
@@ -23,7 +23,7 @@ _expected_columns = ["response", "cum.response",
 class TestFormatInput(object):
     """Tests for formatting input for CausalImpact."""
 
-    def __init__(self, CausalImpact):
+    def __init__(self):
         # Specify some healthy input variables
         self.data = pd.DataFrame(np.random.randn(200, 3),
                                  columns=["y", "x1", "x2"])
@@ -41,7 +41,7 @@ class TestFormatInput(object):
                     "model_args": self.model_args, "ucm_model": None,
                     "post_period_response": None, "alpha": self.alpha}
 
-        result = format_input(self, self.data, self.pre_period,
+        result = CausalImpact(self.data, self.pre_period,
                               self.post_period, self.model_args, None,
                               None, self.alpha)
 
@@ -76,7 +76,7 @@ class TestFormatInput(object):
 
     # Test inconsistent input (must not provide both data and ucm.model)
     def test_inconsistency_raises_error(self):
-        assert_raises(SyntaxError, format_input, self, self.data,
+        assert_raises(SyntaxError, CausalImpact, self.data,
                       self.pre_period, self.post_period, self.model_args,
                       self.ucm_model, self.post_period_response,
                       self.alpha)
@@ -93,7 +93,7 @@ class TestFormatInput(object):
                        ]
 
         for funny_data in funny_datas:
-            checked = format_input(self, funny_data, [0, 3], [3, 3],
+            checked = CausalImpact( funny_data, [0, 3], [3, 3],
                                    self.model_args, None, None,
                                    self.alpha)
             assert(np.all(np.equal(checked["data"].values,
@@ -102,7 +102,7 @@ class TestFormatInput(object):
     # Test bad <data>
     def test_bad_data(self):
         text_data = "foo"
-        assert_raises(PandasError, format_input, self, text_data, [0, 3],
+        assert_raises(PandasError, CausalImpact, text_data, [0, 3],
                       [3, 3], self.model_args, None, None, self.alpha)
 
     # Test bad <pre_period>
@@ -115,7 +115,7 @@ class TestFormatInput(object):
                             ]
                            ]
         for bad_pre_period in bad_pre_periods:
-            assert_raises(ValueError, format_input, self, self.data,
+            assert_raises(ValueError, CausalImpact, self.data,
                           bad_pre_period, self.post_period,
                           self.model_args, None, None, self.alpha)
 
@@ -129,7 +129,7 @@ class TestFormatInput(object):
                              ]
                             ]
         for bad_post_period in bad_post_periods:
-            assert_raises(ValueError, format_input, self, self.data,
+            assert_raises(ValueError, CausalImpact, self.data,
                           self.pre_period, bad_post_period,
                           self.model_args, None, None, self.alpha)
 
@@ -143,13 +143,13 @@ class TestFormatInput(object):
         bad_pre_period = [0, 3]  # float
         bad_post_period = [3, 3]
 
-        assert_raises(ValueError, format_input, self, bad_data, bad_pre_period,
+        assert_raises(ValueError, CausalImpact, bad_data, bad_pre_period,
                       bad_post_period, self.model_args, None, None,
                       self.alpha)
 
         bad_pre_period = [int(0), int(2)]  # integer
         bad_post_period = [int(3), int(3)]
-        assert_raises(ValueError, format_input, self, bad_data, bad_pre_period,
+        assert_raises(ValueError, CausalImpact, bad_data, bad_pre_period,
                       bad_post_period, self.model_args, None, None,
                       self.alpha)
 
@@ -157,7 +157,7 @@ class TestFormatInput(object):
     def test_bad_model_args(self):
         bad_model_args = [1000, "niter = 1000"]
         for bad_model_arg in bad_model_args:
-            assert_raises(TypeError, format_input, self, self.data,
+            assert_raises(TypeError, CausalImpact, self.data,
                           self.pre_period, self.post_period,
                           bad_model_arg, None, None, self.alpha)
 
@@ -165,7 +165,7 @@ class TestFormatInput(object):
         bad_standardize_data = [np.nan, 123, "foo", [True, False]]
         for bad_standardize in bad_standardize_data:
             bad_model_args = {"standardize_data": bad_standardize}
-            assert_raises(ValueError, format_input, self, self.data,
+            assert_raises(ValueError, CausalImpact, self.data,
                           self.pre_period, self.post_period,
                           bad_model_args, None, None, self.alpha)
 
@@ -184,7 +184,7 @@ class TestFormatInput(object):
         bad_post_period_response = [pd.to_datetime("2011-01-01"), True]
         for bad_response in bad_post_period_response:
             print(bad_response)
-            assert_raises(ValueError, format_input, self, None, None,
+            assert_raises(ValueError, CausalImpact, self, None, None,
                           None, None, self.ucm_model, bad_response,
                           self.alpha)
 
@@ -192,7 +192,7 @@ class TestFormatInput(object):
     def test_bad_alpha(self):
         bad_alphas = [None, np.nan, -1, 0, 1, [0.8, 0.9], "0.1"]
         for bad_alpha in bad_alphas:
-            assert_raises(ValueError, format_input, self, self.data,
+            assert_raises(ValueError, CausalImpact, self, self.data,
                           self.pre_period, self.post_period,
                           self.model_args, None, None, bad_alpha)
 

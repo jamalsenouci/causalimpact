@@ -18,21 +18,32 @@ class CausalImpact(object):
         self.summary = None
         self.report = None
         self.model = {}
-        self.data = data.copy()
+        if isinstance(data, pd.DataFrame):
+            self.data = data.copy()
+        else:
+            self.data = data
+        self.params = {"data": data, "pre_period": pre_period,
+                       "post_period": post_period, "model_args": model_args,
+                       "ucm_model": ucm_model,
+                       "post_period_response": post_period_response,
+                       "alpha": alpha, "estimation": estimation}
 
-        kwargs = self._format_input(self.data, pre_period, post_period,
-                                    model_args, ucm_model,
-                                    post_period_response, alpha)
+    def run(self):
+        kwargs = self._format_input(self.params["data"],
+                                    self.params["pre_period"],
+                                    self.params["post_period"],
+                                    self.params["model_args"], None,
+                                    None, self.params["alpha"])
 
         # Depending on input, dispatch to the appropriate Run* method()
         if self.data is not None:
             self._run_with_data(kwargs["data"], kwargs["pre_period"],
                                 kwargs["post_period"], kwargs["model_args"],
-                                kwargs["alpha"], estimation)
+                                kwargs["alpha"], self.params["estimation"])
         else:
             self._run_with_ucm(kwargs["ucm_model"],
                                kwargs["post_period_response"],
-                               kwargs["alpha"], estimation)
+                               kwargs["alpha"], kwargs["estimation"])
 
     def _format_input_data(self, data):
         """Check and format the data argument provided to CausalImpact().
@@ -118,8 +129,8 @@ class CausalImpact(object):
                   str(data.index.max()))
             pre_period[1] = data.index.max()
         if post_period[1] > data.index.max():
-            print("Setting post_period[1] to end of data: " +
-                  str(data.index.max()))
+            print("post_period[1] is out of bounds - Setting post_period[1] to "
+                  "end of data:" + str(data.index.max()))
             post_period[1] = data.index.max()
 
         if pre_period[1] - pre_period[0] + 1 < 3:
@@ -146,6 +157,7 @@ class CausalImpact(object):
             ucm_model:            UnobservedComponents model (instead of data)
             post_period_response: observed response in the post-period
             alpha:                tail-area for posterior intervals
+            estimation:           method of estimation for model fitting
 
         Returns:
             list of checked (and possibly reformatted) input arguments
@@ -240,11 +252,13 @@ class CausalImpact(object):
     def _run_with_data(self, data, pre_period, post_period, model_args, alpha,
                        estimation):
         # Zoom in on data in modeling range
-
-        first_non_null = pd.isnull(data.iloc[:, 1]).nonzero()[0]
-        if len(first_non_null) > 0:
+        if data.shape[1] == 1:  # no exogenous values provided
+            raise ValueError("data contains no exogenous variables")
+        non_null = pd.isnull(data.iloc[:, 1]).nonzero()
+        first_non_null = non_null[0]
+        if first_non_null.size > 0:
             pre_period[0] = max(pre_period[0], data.index[first_non_null[0]])
-        data_modeling = data.copy().iloc[pre_period[0]:post_period[0]-1, :]
+        data_modeling = data.copy().iloc[pre_period[0]:pre_period[1], :]
 
         # Standardize all variables
         orig_std_params = (0, 1)
@@ -314,6 +328,7 @@ class CausalImpact(object):
         self.model = model
         self.params = params
 """
+
     def _print_summary(self, digits=2):
         """Print a summary of the results.
 

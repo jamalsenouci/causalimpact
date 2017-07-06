@@ -28,6 +28,6 @@ install:
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION $DEPS
   - source activate test-environment
   - pip install statsmodels==0.8.0rc1
-  - python setup.py installterminal
+  - python setup.py install
 script:
   - nosetests

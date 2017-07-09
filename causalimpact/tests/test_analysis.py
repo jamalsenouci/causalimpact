@@ -125,13 +125,16 @@ class TestFormatInput(object):
 
     def test_bad_post_period(self):
         # Test bad <post_period>
-        bad_post_periods = [1, [1, 2, 3], [np.nan, 2],
-                            [pd.to_datetime(date) for date in ["2011-01-01",
-                                                               "2011-12-31"]]]
+        bad_post_periods = [1, [1, 2, 3], [np.nan, 2]]
         for bad_post_period in bad_post_periods:
             assert_raises(ValueError, format_input, impact_data,
                           data, pre_period, bad_post_period,
                           model_args, None, None, alpha)
+        bad_post_period = [pd.to_datetime(date) for date in ["2011-01-01",
+                                                             "2011-12-31"]]
+        assert_raises(TypeError, format_input, impact_data,
+                      data, pre_period, bad_post_period,
+                      model_args, None, None, alpha)
 
     def test_period_diff_class(self):
         # Test what happens when pre_period/post_period has a different class

@@ -258,21 +258,24 @@ class CausalImpact(object):
         first_non_null = non_null[0]
         if first_non_null.size > 0:
             pre_period[0] = max(pre_period[0], data.index[first_non_null[0]])
-        data_modeling = data.copy().iloc[pre_period[0]:pre_period[1], :]
+        data_modeling = data.copy()
+        df_pre = data_modeling.iloc[pre_period[0]:pre_period[1], :]
+        df_post = data_modeling.iloc[post_period[0]:post_period[1], :]
 
         # Standardize all variables
         orig_std_params = (0, 1)
         if model_args["standardize_data"]:
-            sd_results = standardize_all_variables(data_modeling)
-            data_modeling = sd_results["data"]
+            sd_results = standardize_all_variables(data_modeling, pre_period, post_period)
+            df_pre = sd_results["data_pre"]
+            df_post = sd_results["data_post"]
             orig_std_params = sd_results["orig_std_params"]
 
+
         # Construct model and perform inference
-        ucm_model = construct_model(data_modeling, model_args)
+        ucm_model = construct_model(df_pre, model_args)
         res = model_fit(ucm_model, estimation, model_args["niter"])
 
-        exog_post = data.iloc[post_period[0]:post_period[1], 1:]
-        inferences = compile_posterior_inferences(res, exog_post, alpha,
+        inferences = compile_posterior_inferences(res, df_post, alpha,
                                                   orig_std_params, estimation)
 
         params = {"pre_period": pre_period, "post_period": post_period,

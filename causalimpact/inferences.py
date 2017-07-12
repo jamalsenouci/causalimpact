@@ -32,9 +32,15 @@ def compile_posterior_inferences(results, df_post, alpha,
         point_effect = (response.iloc[:, 0] - point_pred.iloc[:, 0]).to_frame()
         point_effect_upper = (response.iloc[:, 0] - point_pred_upper.iloc[:, 0]).to_frame()
         point_effect_lower = (response.iloc[:, 0] - point_pred_lower.iloc[:, 0]).to_frame()
-        cum_effect = np.cumsum(point_effect)
-        cum_effect_upper = np.cumsum(point_effect_upper)
-        cum_effect_lower = np.cumsum(point_effect_lower)
+        cum_effect = point_effect
+        cum_effect.iloc[:len(pre_pred)] = 0
+        cum_effect = np.cumsum(cum_effect)
+        cum_effect_upper = point_effect_upper
+        cum_effect_upper.iloc[:len(pre_pred)] = 0
+        cum_effect_upper = np.cumsum(cum_effect_upper)
+        cum_effect_lower = point_effect_lower
+        cum_effect_lower.iloc[:len(pre_pred)] = 0
+        cum_effect_lower = np.cumsum(cum_effect_lower)
 
         # Create DataFrame of results
         data = pd.concat([response, cum_response, point_pred, point_pred_upper,

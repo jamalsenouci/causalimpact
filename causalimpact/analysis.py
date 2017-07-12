@@ -7,13 +7,15 @@ from causalimpact.misc import standardize_all_variables
 from causalimpact.model import construct_model, model_fit
 from causalimpact.inferences import compile_posterior_inferences
 # from causalimpact.inferences import compile_na_inferences
-
+import warnings
 
 class CausalImpact(object):
 
     def __init__(self, data=None, pre_period=None, post_period=None,
                  model_args=None, ucm_model=None, post_period_response=None,
                  alpha=0.05, estimation="MLE"):
+        warnings.warn(Warning("""Here be dragons - this code is still wip and not fully
+                tested yet"""))
         self.series = None
         self.summary = None
         self.report = None

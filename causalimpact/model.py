@@ -40,7 +40,7 @@ def observations_ill_conditioned(y):
     return False
 
 
-def construct_model(data, model_args=None):
+def construct_model(self, data, model_args=None):
     """Specifies the model and performs inference. Inference means using the data
     to pass from a prior distribution over parameters and states to a posterior
     distribution. In a Bayesian framework, estimating a model means to obtain
@@ -87,14 +87,17 @@ def construct_model(data, model_args=None):
         if not model_args["dynamic_regression"]:
             ss["exog"] = data.iloc[:, 1:].values
             mod = UnobservedComponents(**ss)
+            self.model = mod
             return mod
         # Dynamic regression
         else:
             raise NotImplementedError()
 
 
-def model_fit(model, estimation, niter):
+def model_fit(self, model, estimation, niter):
     if estimation == "MLE":
-        return model.fit(maxiter=niter)
+        model = model.fit(maxiter=niter)
+        self.model = model
+        return self.model
     else:
         raise NotImplementedError()

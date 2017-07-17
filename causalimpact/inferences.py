@@ -3,14 +3,19 @@ import pandas as pd
 from causalimpact.misc import unstandardize
 
 
-def compile_posterior_inferences(results, df_post, alpha,
+def compile_posterior_inferences(results, df_pre, df_post,
+                                 post_period_response, alpha,
                                  orig_std_params, estimation):
     if estimation == "MLE":
         # Compute point predictions of counterfactual (in standardized space)
-        predict = results.get_prediction()
-        forecast = results.get_forecast(
-            steps=len(df_post), exog=df_post.iloc[:, 1:], alpha=alpha)
-
+        if df_post is not None:
+            predict = results.get_prediction()
+            forecast = results.get_forecast(
+                steps=len(df_post), exog=df_post.iloc[:, 1:], alpha=alpha)
+        else:
+            pre_len = results.model.nobs - len(post_period_response)
+            predict = results.get_prediction(end=pre_len - 1)
+            forecast = results.get_prediction(start=pre_len)
         # Compile summary statistics (in original space)
         pre_pred = unstandardize(predict.predicted_mean, orig_std_params)
         post_pred = unstandardize(forecast.predicted_mean, orig_std_params)
@@ -23,15 +28,27 @@ def compile_posterior_inferences(results, df_post, alpha,
         point_pred_upper = ci["upper y"].to_frame()
         point_pred_lower = ci["lower y"].to_frame()
 
-        response = np.concatenate([results.data.orig_endog, df_post.iloc[:, 0]])
+        if df_post is not None:
+            response = np.concatenate([df_pre.iloc[:, 0],
+                                       df_post.iloc[:, 0]])
+            response_index = np.concatenate([df_pre.index,
+                                            df_post.index])
+        else:
+            response = np.concatenate([df_pre, post_period_response])
+            # response.reset_index()
+            response_index = pd.RangeIndex(0, len(response))
+
         response = unstandardize(response, orig_std_params)
+        response = pd.DataFrame(response)
         cum_response = np.cumsum(response)
         cum_pred = np.cumsum(point_pred)
         cum_pred_upper = np.cumsum(point_pred_upper)
         cum_pred_lower = np.cumsum(point_pred_lower)
         point_effect = (response.iloc[:, 0] - point_pred.iloc[:, 0]).to_frame()
-        point_effect_upper = (response.iloc[:, 0] - point_pred_upper.iloc[:, 0]).to_frame()
-        point_effect_lower = (response.iloc[:, 0] - point_pred_lower.iloc[:, 0]).to_frame()
+        point_effect_upper = (response.iloc[:, 0] -
+                              point_pred_upper.iloc[:, 0]).to_frame()
+        point_effect_lower = (response.iloc[:, 0] -
+                              point_pred_lower.iloc[:, 0]).to_frame()
         cum_effect = point_effect
         cum_effect.iloc[:len(pre_pred)] = 0
         cum_effect = np.cumsum(cum_effect)
@@ -53,6 +70,10 @@ def compile_posterior_inferences(results, df_post, alpha,
                         "cum_pred_lower", "cum_pred_upper", "point_effect",
                         "point_effect_lower", "point_effect_upper",
                         "cum_effect", "cum_effect_lower", "cum_effect_upper"]
+        data.index = response_index
+        # index = np.concatenate([results.data.orig_endog.index,
+        #                         df_post.iloc[:, 0].index])
+        # data.index = index
         # import pdb
         # pdb.set_trace()
         # Undo standardization (if any)

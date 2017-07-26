@@ -21,7 +21,7 @@ pip install git+ssh://github.com/jamalsenouci/causalimpact.git
 
 #### Getting started
 
-[Documentation and examples](http://jamalsenouci.github.io/CausalImpact/CausalImpact.html)
+[Documentation and examples](http://jamalsenouci.github.io/projects/causalimpact.html)
 
 #### Further resources
 

@@ -21,7 +21,7 @@ pip install git+ssh://github.com/jamalsenouci/causalimpact.git
 
 #### Getting started
 
-[Documentation and examples](http://jamalsenouci.github.io/CausalImpact/CausalImpact.html)
+[Documentation and examples](http://jamalsenouci.github.io/projects/causalimpact.html)
 
 #### Further resources
 
@@ -30,6 +30,3 @@ pip install git+ssh://github.com/jamalsenouci/causalimpact.git
 
 #### Bugs
 The issue tracker is at https://github.com/jamalsenouci/causalimpact/issues. Please report any bugs that you find. Or, even better, fork the repository on GitHub and create a pull request.
-
-#### Development
-docker run -v "c:\projects\causalimpact":"/home/jovyan/work/" science -p 8888:8888

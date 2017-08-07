@@ -3,6 +3,10 @@ CausalImpact
 
 Disclaimer: CURRENTLY WIP
 
+#### TO DO
+* Estimation is MLE not Bayesian
+* More unit tests
+
 #### A Python package for causal inference using Bayesian structural time-series models
 
 

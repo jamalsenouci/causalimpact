@@ -105,32 +105,44 @@ class CausalImpact(object):
         if np.any(pd.isnull(pre_period)) or np.any(pd.isnull(post_period)):
             raise ValueError("pre_period and post period must not contain " +
                              "null values")
+
+        pre_dtype = np.array(pre_period).dtype
+        post_dtype = np.array(post_period).dtype
+
         if isinstance(data.index, pd.tseries.index.DatetimeIndex):
             pre_period = [pd.to_datetime(date) for date in pre_period]
             post_period = [pd.to_datetime(date) for date in post_period]
+        elif pre_dtype == 'O' or post_dtype == "O":
+            raise ValueError("pre_period (" + pre_dtype.name +
+                             ") and post_period (" + post_dtype.name +
+                             ") should have the same class as the " +
+                             "time points in the data (" +
+                             data.index.dtype.name + ")")
 
+        elif data.index.dtype.kind != pre_dtype.kind or \
+                data.index.dtype.kind != post_dtype.kind:
+            if data.index.dtype == int:
+                pre_period = [int(elem) for elem in pre_period]
+                post_period = [int(elem) for elem in post_period]
+            elif data.index.dtype == float:
+                pre_period = [float(elem) for elem in pre_period]
+                post_period = [float(elem) for elem in post_period]
+            else:
+                raise ValueError("pre_period (" + pre_dtype.name +
+                                 ") and post_period (" + post_dtype.name +
+                                 ") should have the same class as the " +
+                                 "time points in the data (" +
+                                 data.index.dtype.name + ")")
+        if isinstance(data.index, pd.RangeIndex):
+            loc1 = pre_period[0]
+            loc2 = pre_period[1]
+            loc3 = post_period[0]
+            loc4 = post_period[1]
         else:
-            pre_dtype = np.array(pre_period).dtype
-            post_dtype = np.array(post_period).dtype
-
-            if data.index.dtype.kind != pre_dtype.kind or \
-               data.index.dtype.kind != post_dtype.kind:
-                if data.index.dtype == int:
-                    pre_period = [int(elem) for elem in pre_period]
-                    post_period = [int(elem) for elem in post_period]
-                elif data.index.dtype == float:
-                    pre_period = [float(elem) for elem in pre_period]
-                    post_period = [float(elem) for elem in post_period]
-                else:
-                    raise ValueError("pre_period (" + pre_dtype.name +
-                                     ") and post_period (" + post_dtype.name +
-                                     ") should have the same class as the " +
-                                     "time points in the data (" +
-                                     data.index.dtype.name + ")")
-        loc1 = data.index.get_loc(pre_period[0])
-        loc2 = data.index.get_loc(pre_period[1])
-        loc3 = data.index.get_loc(post_period[0])
-        loc4 = data.index.get_loc(post_period[1])
+            loc1 = data.index.get_loc(pre_period[0])
+            loc2 = data.index.get_loc(pre_period[1])
+            loc3 = data.index.get_loc(post_period[0])
+            loc4 = data.index.get_loc(post_period[1])
         if loc2 - loc1 + 1 < 3:
             raise ValueError("pre_period must span at least 3 time points")
         if loc4 < loc3:
@@ -363,14 +375,14 @@ class CausalImpact(object):
             cum_abs_upper = int((post_point_resp - post_point_upper).sum())
             cum_abs_effect_ci = [cum_abs_lower, cum_abs_upper]
 
-            rel_effect = "{:.1f}%".format(abs_effect/mean_pred*100)
-            cum_rel_effect = "{:.1f}%".format(cum_abs_effect/cum_pred * 100)
-            rel_effect_lower = "{:.1f}%".format(abs_effect_lower/mean_pred*100)
-            rel_effect_upper = "{:.1f}%".format(abs_effect_upper/mean_pred*100)
+            rel_effect = "{:.1f}%".format(abs_effect / mean_pred * 100)
+            cum_rel_effect = "{:.1f}%".format(cum_abs_effect / cum_pred * 100)
+            rel_effect_lower = "{:.1f}%".format(abs_effect_lower / mean_pred * 100)
+            rel_effect_upper = "{:.1f}%".format(abs_effect_upper / mean_pred * 100)
             rel_effect_ci = [rel_effect_lower, rel_effect_upper]
-            cum_rel_effect_lower = cum_abs_lower/cum_pred*100
+            cum_rel_effect_lower = cum_abs_lower / cum_pred * 100
             cum_rel_effect_lower = "{:.1f}%".format(cum_rel_effect_lower)
-            cum_rel_effect_upper = cum_abs_upper/cum_pred*100
+            cum_rel_effect_upper = cum_abs_upper / cum_pred * 100
             cum_rel_effect_upper = "{:.1f}%".format(cum_rel_effect_upper)
             cum_rel_effect_ci = [cum_rel_effect_lower, cum_rel_effect_upper]
 
@@ -386,15 +398,15 @@ class CausalImpact(object):
                 [rel_effect_ci, cum_rel_effect_ci]
             ]
             summary = pd.DataFrame(summary, columns=["Average", "Cumulative"],
-                               index=["Actual",
-                                      "Predicted",
-                                      "95% CI",
-                                      " ",
-                                      "Absolute Effect",
-                                      "95% CI",
-                                      " ",
-                                      "Relative Effect",
-                                      "95% CI"])
+                                   index=["Actual",
+                                          "Predicted",
+                                          "95% CI",
+                                          " ",
+                                          "Absolute Effect",
+                                          "95% CI",
+                                          " ",
+                                          "Relative Effect",
+                                          "95% CI"])
             print(summary)
         elif output == "report":
             pass
@@ -418,11 +430,11 @@ class CausalImpact(object):
             plt.axvline(data_inter, c='k', linestyle='--')
 
             plt.fill_between(
-                        inferences.index,
-                        inferences["point_pred_lower"],
-                        inferences["point_pred_upper"],
-                        facecolor='gray', interpolate=True, alpha=0.25,
-                    )
+                inferences.index,
+                inferences["point_pred_lower"],
+                inferences["point_pred_upper"],
+                facecolor='gray', interpolate=True, alpha=0.25,
+            )
             plt.setp(ax1.get_xticklabels(), visible=False)
             plt.legend(loc='upper left')
             plt.title('Observation vs prediction')

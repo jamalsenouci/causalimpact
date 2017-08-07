@@ -93,10 +93,10 @@ class TestFormatInput(object):
     def test_format_output_is_df(self):
         # Test that <data> is converted to pandas DataFrame
         expected_data = pd.DataFrame(np.arange(0, 8).reshape(4, 2),
-                                     index=[1, 2, 3, 4])
+                                     index=[0, 1, 2, 3])
         funny_datas = [pd.DataFrame([[0, 1], [2, 3], [4, 5], [6, 7]]),
                        pd.DataFrame(data=[[0, 1], [2, 3], [4, 5], [6, 7]],
-                                    index=[1, 2, 3, 4]),
+                                    index=[0, 1, 2, 3]),
                        [[0, 1], [2, 3], [4, 5], [6, 7]],
                        np.array([[0, 1], [2, 3], [4, 5], [6, 7]])]
 
@@ -132,7 +132,7 @@ class TestFormatInput(object):
                           model_args, None, None, alpha)
         bad_post_period = [pd.to_datetime(date) for date in ["2011-01-01",
                                                              "2011-12-31"]]
-        assert_raises(TypeError, format_input, impact_data,
+        assert_raises(ValueError, format_input, impact_data,
                       data, pre_period, bad_post_period,
                       model_args, None, None, alpha)
 
@@ -248,6 +248,8 @@ class TestRunWithData(object):
         impact = CausalImpact(data, pre_period, post_period, model_args)
         with pytest.raises(ValueError):
             impact.run()
+
+
 """
     def test_missing_pre_period_data(self):
         data.iloc[3:5, 0] = np.nan

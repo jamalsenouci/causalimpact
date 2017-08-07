@@ -1,21 +1,34 @@
 # After changing this file, check it on:
 #   http://lint.travis-ci.org/
 #
+
+dist: trusty
+sudo: required
 language: python
-python:
-  - "3.3"
-  - "2.7"
-  - "2.6"
+matrix:
+  fast_finish: true
+  include:
+  - python: 2.7
+    env:
+    - PYTHON=2.7
+  - python: 2.7
+    env:
+    - PYTHON=3.3
+  - python: 2.7
+    env:
+    - PYTHON=3.4
+  - python: 2.7
+    env:
+    - PYTHON=3.5
+  - python: 2.7
+    env:
+    - PYTHON=3.6
 # Setup anaconda
 before_install:
-  - sudo apt-get update
+  - sudo apt update
   # We do this conditionally because it saves us some downloading if the
   # version is the same.
-  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
-      wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
-    else
-      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-    fi
+  - wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
   - hash -r
@@ -24,10 +37,9 @@ before_install:
   # Useful for debugging any issues with conda
   - conda info -a
 install:
-  - DEPS="numpy scipy pip nose pytest"
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION $DEPS
+  - DEPS="numpy scipy pip nose pytest pandas=0.19 statsmodels=0.8.0"
+  - conda create -q -n test-environment python=$PYTHON $DEPS
   - source activate test-environment
-  - pip install statsmodels==0.8.0rc1 pandas==0.19 
   - python setup.py install
 script:
-  - nosetests
+  - pytest

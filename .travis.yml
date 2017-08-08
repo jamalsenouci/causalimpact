@@ -34,12 +34,12 @@ before_install:
   - conda update -q conda
   # Useful for debugging any issues with conda
   - conda info -a
-  - if [ ${COVERAGE} = true ]; then export COVERAGE_OPTS=" --cov-config=.travis_coveragerc --cov=causalimpact "; else export COVERAGE_OPTS=""; fi
-  - if [ ${COVERAGE} = true ]; then pip install codecov coverage coveralls pytest-cov; fi
 install:
   - DEPS="numpy scipy pip nose pytest pandas=0.19 statsmodels=0.8.0"
   - conda create -q -n test-environment python=$PYTHON $DEPS
   - source activate test-environment
+  - if [ ${COVERAGE} = true ]; then export COVERAGE_OPTS=" --cov-config=.travis_coveragerc --cov=causalimpact "; else export COVERAGE_OPTS=""; fi
+  - if [ ${COVERAGE} = true ]; then pip install codecov coverage coveralls pytest-cov; fi
   - python setup.py install
 script:
   - pytest ${COVERAGE_OPTS} causalimpact

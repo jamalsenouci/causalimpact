@@ -24,7 +24,7 @@ _expected_columns = ["response", "cum_response",
 
 data = pd.DataFrame(np.random.randn(200, 3), columns=["y", "x1", "x2"])
 pre_period = [0, 100]
-post_period = [100, 200]
+post_period = [101, 200]
 model_args = {"niter": 123}
 ucm_model = UCM(endog=data.iloc[:, 0].values, level="llevel")
 post_period_response = np.random.randn(100)
@@ -101,7 +101,7 @@ class TestFormatInput(object):
                        np.array([[0, 1], [2, 3], [4, 5], [6, 7]])]
 
         for funny_data in funny_datas:
-            checked = format_input(impact_data, funny_data, [0, 3],
+            checked = format_input(impact_data, funny_data, [0, 2],
                                    [3, 3], model_args, None, None,
                                    alpha)
             assert(np.all(np.equal(checked["data"].values,
@@ -249,9 +249,8 @@ class TestRunWithData(object):
         with pytest.raises(ValueError):
             impact.run()
 
-
-"""
     def test_missing_pre_period_data(self):
         data.iloc[3:5, 0] = np.nan
         impact = CausalImpact(data, pre_period, post_period, model_args)
-"""
+        impact.run()
+        assert len(impact.inferences) == len(data)

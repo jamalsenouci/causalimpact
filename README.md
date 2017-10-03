@@ -1,5 +1,6 @@
 CausalImpact
 -------
+![build status](https://travis-ci.org/jamalsenouci/causalimpact.svg?branch=master)
 
 Disclaimer: CURRENTLY WIP
 

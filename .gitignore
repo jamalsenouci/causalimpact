@@ -76,6 +76,10 @@ celerybeat-schedule
 
 # dotenv
 .env
+.condarc
+.conda
+.python_history
+.bash_history
 
 # virtualenv
 venv/

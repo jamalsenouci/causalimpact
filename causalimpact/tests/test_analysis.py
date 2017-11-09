@@ -23,7 +23,7 @@ _expected_columns = ["response", "cum_response",
 
 
 data = pd.DataFrame(np.random.randn(200, 3), columns=["y", "x1", "x2"])
-pre_period = [0, 100]
+pre_period = [2, 100]
 post_period = [101, 200]
 model_args = {"niter": 123}
 ucm_model = UCM(endog=data.iloc[:, 0].values, level="llevel")
@@ -254,3 +254,10 @@ class TestRunWithData(object):
         impact = CausalImpact(data, pre_period, post_period, model_args)
         impact.run()
         assert len(impact.inferences) == len(data)
+
+    # Test pre-period that starts after the beginning of the time series.
+    def test_late_pre_period(self):
+        pre_period =  [3, 100]
+        impact = CausalImpact(data, pre_period, post_period, model_args)
+        impact.run()
+        assert np.all(pd.isnull(impact.inferences.iloc[0:pre_period[0], 2:]))

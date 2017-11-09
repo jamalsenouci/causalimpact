@@ -301,7 +301,7 @@ class CausalImpact(object):
         ucm_model = construct_model(self, df_pre, model_args)
         res = model_fit(self, ucm_model, estimation, model_args["niter"])
 
-        inferences = compile_posterior_inferences(res, df_pre, df_post, None,
+        inferences = compile_posterior_inferences(res, data, df_pre, df_post, None,
                                                   alpha, orig_std_params,
                                                   estimation)
 

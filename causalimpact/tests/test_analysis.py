@@ -23,7 +23,7 @@ _expected_columns = ["response", "cum_response",
 
 
 data = pd.DataFrame(np.random.randn(200, 3), columns=["y", "x1", "x2"])
-pre_period = [2, 100]
+pre_period = [0, 100]
 post_period = [101, 200]
 model_args = {"niter": 123}
 ucm_model = UCM(endog=data.iloc[:, 0].values, level="llevel")
@@ -255,9 +255,38 @@ class TestRunWithData(object):
         impact.run()
         assert len(impact.inferences) == len(data)
 
-    # Test pre-period that starts after the beginning of the time series.
+    # Test pre_period that starts after the beginning of the time series.
     def test_late_pre_period(self):
         pre_period =  [3, 100]
         impact = CausalImpact(data, pre_period, post_period, model_args)
         impact.run()
+        assert pd.util.testing.assert_numpy_array_equal(impact.inferences.response, data.y)
         assert np.all(pd.isnull(impact.inferences.iloc[0:pre_period[0], 2:]))
+
+    # Test post_period that does not last until the end of the data.
+    def test_early_post_period(self):
+        post_period = [101,197]
+        impact = CausalImpact(data, pre_period, post_period, model_args)
+        impact.run()
+        assert pd.util.testing.assert_numpy_array_equal(impact.inferences.response, data.y)
+        assert np.all(pd.isnull(impact.inferences.iloc[-2:, 2:]))
+
+    # Test gap between pre_period and post_period
+    def test_gap(self):
+        post_period = [120,200]
+        impact = CausalImpact(data, pre_period, post_period, model_args)
+        impact.run()
+        assert np.all(pd.isnull(impact.inferences.loc[101:119, impact.inferences.columns[2:]]))
+
+      # Test case combining previous test cases, having a pre-period that starts
+      # after the beginning of the time series, a gap between pre- and post-period,
+      # and a post-period that does not last until the end of the data.
+    def test_late_early_and_gap(self):
+        pre_period =  [3, 80]
+        post_period =  [120, 197]
+        impact = CausalImpact(data, pre_period, post_period, model_args)
+        impact.run()
+        assert np.all(pd.isnull(impact.inferences.loc[:2, impact.inferences.columns[2:]]))
+        assert np.all(pd.isnull(impact.inferences.loc[81:119, impact.inferences.columns[2:]]))
+        assert np.all(pd.isnull(impact.inferences.loc[198:, impact.inferences.columns[2:]]))
+      

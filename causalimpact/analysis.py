@@ -7,7 +7,6 @@ from causalimpact.misc import standardize_all_variables
 from causalimpact.model import construct_model, model_fit
 from causalimpact.inferences import compile_posterior_inferences
 # from causalimpact.inferences import compile_na_inferences
-import warnings
 
 
 class CausalImpact(object):
@@ -15,8 +14,6 @@ class CausalImpact(object):
     def __init__(self, data=None, pre_period=None, post_period=None,
                  model_args=None, ucm_model=None, post_period_response=None,
                  alpha=0.05, estimation="MLE"):
-        warnings.warn(Warning("""This code is still wip and not fully
-                tested yet"""))
         self.series = None
         self.model = {}
         if isinstance(data, pd.DataFrame):
@@ -132,9 +129,9 @@ class CausalImpact(object):
                                  "time points in the data (" +
                                  data.index.dtype.name + ")")
 
-        if pre_period[1] >= post_period[0]:
+        if pre_period[1] > post_period[0]:
             raise ValueError("post period must start at least 1 observation" +
-                             "after the end of the pre_period")
+                             " after the end of the pre_period")
 
         if isinstance(data.index, pd.RangeIndex):
             loc1 = pre_period[0]

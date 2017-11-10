@@ -34,7 +34,6 @@ def compile_posterior_inferences(results, data, df_pre, df_post,
         response = data.iloc[:, 0]
         response_index = data.index
 
-        response = response
         response = pd.DataFrame(response)
         cum_response = np.cumsum(response)
         cum_pred = np.cumsum(point_pred)

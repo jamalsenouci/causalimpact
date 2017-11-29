@@ -6,7 +6,6 @@ import pytest
 
 import numpy as np
 import pandas as pd
-from pandas.core.common import PandasError
 from pandas.util.testing import assert_frame_equal
 from statsmodels.tsa.statespace.structural import UnobservedComponents as UCM
 
@@ -110,7 +109,8 @@ class TestFormatInput(object):
     def test_bad_data(self):
         # Test bad <data>
         text_data = "foo"
-        assert_raises(PandasError, format_input, impact_data, text_data,
+        with pytest.raises(Exception):
+            format_input(impact_data, text_data,
                       [0, 3], [3, 3], model_args, None, None, alpha)
 
     def test_bad_pre_period(self):

@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-from pandas.core.common import PandasError
 from pandas.util.testing import is_list_like
 
 from causalimpact.misc import standardize_all_variables
@@ -65,8 +64,8 @@ class CausalImpact(object):
         # Try to convert to Pandas DataFrame
         try:
             data = pd.DataFrame(data)
-        except PandasError:
-            raise PandasError("could not convert input data to Pandas " +
+        except ValueError:
+            raise ValueError("could not convert input data to Pandas " +
                               "DataFrame")
 
         # Must have at least 3 time points

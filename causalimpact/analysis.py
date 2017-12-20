@@ -103,7 +103,7 @@ class CausalImpact(object):
 
         pre_dtype = np.array(pre_period).dtype
         post_dtype = np.array(post_period).dtype
-        if isinstance(data.index, pd.tseries.index.DatetimeIndex):
+        if isinstance(data.index, pd.core.indexes.datetimes.DatetimeIndex):
             pre_period = [pd.to_datetime(date) for date in pre_period]
             post_period = [pd.to_datetime(date) for date in post_period]
         elif pre_dtype == 'O' or post_dtype == "O":

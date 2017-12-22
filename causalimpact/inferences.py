@@ -53,13 +53,13 @@ def compile_posterior_inferences(results, data, df_pre, df_post,
         point_effect_lower = (data.response -
                               data.point_pred_lower).to_frame()
         cum_effect = point_effect.copy()
-        cum_effect.iloc[df_pre.index[0]:df_pre.index[-1]] = 0
+        cum_effect.loc[df_pre.index[0]:df_pre.index[-1]] = 0
         cum_effect = np.cumsum(cum_effect)
         cum_effect_upper = point_effect_upper.copy()
-        cum_effect_upper.iloc[df_pre.index[0]:df_pre.index[-1]] = 0
+        cum_effect_upper.loc[df_pre.index[0]:df_pre.index[-1]] = 0
         cum_effect_upper = np.cumsum(cum_effect_upper)
         cum_effect_lower = point_effect_lower.copy()
-        cum_effect_lower.iloc[df_pre.index[0]:df_pre.index[-1]] = 0
+        cum_effect_lower.loc[df_pre.index[0]:df_pre.index[-1]] = 0
         cum_effect_lower = np.cumsum(cum_effect_lower)
 
         data = pd.concat([data, point_effect, point_effect_upper,

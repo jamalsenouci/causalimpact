@@ -671,7 +671,6 @@ class CausalImpact(object):
             plt.axis([inferences.index[0], inferences.index[-1], None,
                       None])
 
-            ax3.set_xticklabels(inferences.index)
             plt.title('Cumulative Impact')
         plt.xlabel('$T$')
         plt.show()

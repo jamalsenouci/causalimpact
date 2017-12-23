@@ -300,3 +300,21 @@ class TestRunWithData(object):
     """Create a time series without gap between pre- and post-period. Test that
     missing values in the last entries of the pre-period do not lead to
     estimation errors."""
+    def test_missing_values(self):
+        pre_period = [0, 100]
+        post_period = [101, 200]
+        data = pd.DataFrame(np.random.randn(200, 3), columns=["y", "x1", "x2"])
+        data.iloc[95:100, 0] = np.nan
+        impact = CausalImpact(data, pre_period, post_period, model_args)
+        impact.run()
+
+        """Test that all columns in the result series except those associated with
+        point predictions have missing values at the time points the result time
+        series has missing values."""
+        predicted_cols = [impact.inferences.columns.get_loc(col) for col in impact.inferences.columns if ("response" not in col and "point_effect" not in col)]
+        effect_cols = [impact.inferences.columns.get_loc(col) for col in impact.inferences.columns if "point_effect" in col]
+        response_cols = [impact.inferences.columns.get_loc(col) for col in impact.inferences.columns if "response" in col]
+        assert np.all(np.isnan(impact.inferences.iloc[95:100, response_cols]))
+        assert (np.any(np.isnan(impact.inferences.iloc[95:100, predicted_cols])) == False) 
+        assert (np.any(np.isnan(impact.inferences.iloc[:95, :])) == False)
+        assert (np.any(np.isnan(impact.inferences.iloc[101:, :])) == False)

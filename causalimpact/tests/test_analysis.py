@@ -355,6 +355,32 @@ class TestFormatInput():
             )
         assert str(excinfo.value) == ('post_period_response must be list-like')
 
+        with pytest.raises(ValueError) as excinfo:
+            causal_impact._format_input(
+                None,
+                None,
+                None,
+                None,
+                impact_ucm,
+                [pd.to_datetime('2018-01-01')],
+                0.05
+            )
+        assert str(excinfo.value) == ('post_period_response should not be '
+            'datetime values')
+
+        with pytest.raises(ValueError) as excinfo:
+            causal_impact._format_input(
+                None,
+                None,
+                None,
+                None,
+                impact_ucm,
+                [2j],
+                0.05
+            )
+        assert str(excinfo.value) == ('post_period_response must contain all '
+            'real values')
+
     def test_bad_alpha(self, data, causal_impact):
         bad_alphas = [None, np.nan, -1, 0, 1, [0.8, 0.9], "0.1"]
         for bad_alpha in bad_alphas:
@@ -624,7 +650,6 @@ class TestFormatInput():
         assert str(excinfo.value) == ('post_period[1] must not be earlier '
             'than post_period[0]')
 
-
  
 class TestRunWithData(object):
     def test_missing_input(self):
@@ -634,7 +659,7 @@ class TestRunWithData(object):
 
     def test_unlabelled_pandas_series(self, expected_columns, pre_period,
             post_period):
-        model_args = {"niter": 123}
+        model_args = {"niter": 123, 'standardize_data': False}
         alpha = 0.05
         data = pd.DataFrame(np.random.randn(200, 3))
         causal_impact = CausalImpact(data.values, pre_period, post_period,
@@ -717,6 +742,20 @@ class TestRunWithData(object):
                       81:119, impact.inferences.columns[2:]]))
         assert np.all(pd.isnull(impact.inferences.loc[
                       198:, impact.inferences.columns[2:]]))
+
+    def test_pre_period_lower_than_data_index_min(self, data):
+        pre_period = [-1, 100]
+        post_period = [101, 199]
+        impact = CausalImpact(data, pre_period, post_period)
+        impact.run()
+        assert impact.params['pre_period'] == [0, 100]
+
+    def test_post_period_bigger_than_data_index_max(self, data):
+        pre_period = [0, 100]
+        post_period = [101, 300]
+        impact = CausalImpact(data, pre_period, post_period)
+        impact.run()
+        assert impact.params['post_period'] == [101, 199]
 
     def test_missing_values_in_pre_period_y(self, pre_period, post_period):
         data = pd.DataFrame(np.random.randn(200, 3), columns=["y", "x1", "x2"])

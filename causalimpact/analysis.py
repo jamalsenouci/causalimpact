@@ -5,7 +5,6 @@ from pandas.util.testing import is_list_like
 from causalimpact.misc import standardize_all_variables
 from causalimpact.model import construct_model, model_fit
 from causalimpact.inferences import compile_posterior_inferences
-# from causalimpact.inferences import compile_na_inferences
 
 
 class CausalImpact(object):
@@ -147,9 +146,6 @@ class CausalImpact(object):
         if pre_period[0] < data.index.min():
             pre_period[0] = data.index.min()
 
-        if pre_period[1] > data.index.max():
-            pre_period[1] = data.index.max()
-
         if post_period[1] > data.index.max():
             post_period[1] = data.index.max()
 
@@ -239,10 +235,10 @@ class CausalImpact(object):
                 raise ValueError("post_period_response must be list-like")
             if np.array(post_period_response).dtype.num == 17:
                 raise ValueError("post_period_response should not be" +
-                                 "datetime values")
+                                 " datetime values")
             if not np.all(np.isreal(post_period_response)):
                 raise ValueError("post_period_response must contain all" +
-                                 "real values")
+                                 " real values")
 
         # Check <alpha>
         if alpha is None:
@@ -266,11 +262,9 @@ class CausalImpact(object):
         # Zoom in on data in modeling range
         if data.shape[1] == 1:  # no exogenous values provided
             raise ValueError("data contains no exogenous variables")
-        non_null = pd.isnull(data.iloc[:, 1]).nonzero()
-        first_non_null = non_null[0]
-        if first_non_null.size > 0:
-            pre_period[0] = max(pre_period[0], data.index[first_non_null[0]])
+
         data_modeling = data.copy()
+
         df_pre = data_modeling.loc[pre_period[0]:pre_period[1], :]
         df_post = data_modeling.loc[post_period[0]:post_period[1], :]
 

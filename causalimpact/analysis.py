@@ -89,11 +89,8 @@ class CausalImpact(object):
         """
         import numpy as np
         import pandas as pd
-        if pre_period is None or post_period is None:
-            raise ValueError("pre_period and post period must not contain " +
-                             "null values")
         if type(pre_period) is not list or type(post_period) is not list:
-            raise ValueError("pre_period and post_period must bothe be lists")
+            raise ValueError("pre_period and post_period must both be lists")
         if len(pre_period) != 2 or len(post_period) != 2:
             raise ValueError("pre_period and post_period must both be of " +
                              "length 2")
@@ -142,26 +139,18 @@ class CausalImpact(object):
             loc2 = data.index.get_loc(pre_period[1])
             loc3 = data.index.get_loc(post_period[0])
             loc4 = data.index.get_loc(post_period[1])
-        if loc2 - loc1 + 1 < 3:
-            raise ValueError("pre_period must span at least 3 time points")
+
         if loc4 < loc3:
             raise ValueError("post_period[1] must not be earlier than " +
                              "post_period[0]")
-        if loc3 < loc2:
-            raise ValueError("post_period[0] must not be earlier than " +
-                             "pre_period[1]")
 
         if pre_period[0] < data.index.min():
-            print("Setting pre_period[1] to start of data: " +
-                  str(data.index.min()))
             pre_period[0] = data.index.min()
+
         if pre_period[1] > data.index.max():
-            print("Setting pre_period[1] to end of data: " +
-                  str(data.index.max()))
             pre_period[1] = data.index.max()
+
         if post_period[1] > data.index.max():
-            print("post_period[1] is out of bounds - Setting post_period[1] to"
-                  " end of data:" + str(data.index.max()))
             post_period[1] = data.index.max()
 
         return {"pre_period": pre_period, "post_period": post_period}
@@ -183,7 +172,7 @@ class CausalImpact(object):
 
         Returns:
             list of checked (and possibly reformatted) input arguments
-"""
+        """
 
         import numpy as np
         import pandas as pd
@@ -197,9 +186,10 @@ class CausalImpact(object):
 
         if np.any(pd.isnull(args) != data_model_args) and \
            np.any(pd.isnull(args) != ucm_model_args):
-            raise SyntaxError("must either provide data, pre_period, " +
-                              "post_period, model_args or ucm_model" +
-                              "and post_period_response")
+            raise SyntaxError("Must either provide ``data``, ``pre_period``" +
+                              " ,``post_period``, ``model_args``"
+                              " or ``ucm_model" +
+                              "and ``post_period_response``")
 
         # Check <data> and convert to Pandas DataFrame, with rows
         # representing time points
@@ -234,7 +224,7 @@ class CausalImpact(object):
         # Check <standardize_data>
         if type(model_args["standardize_data"]) != bool:
             raise ValueError("model_args.standardize_data must be a" +
-                             "boolean value")
+                             " boolean value")
 
         """ Check <ucm_model> TODO
         if ucm_model is not None:
@@ -318,7 +308,6 @@ class CausalImpact(object):
         # Guess <pre_period> and <post_period> from the observation vector
         # These will be needed for plotting period boundaries in plot().
         #raise NotImplementedError()
-        data_modeling = ucm_model.data.orig_endog
 
         """
         try:
@@ -328,16 +317,35 @@ class CausalImpact(object):
                              "the values in the post-intervention period " +
                              "have been set to NA")
         """
+
         df_pre = ucm_model.data.orig_endog[:-len(post_period_response)]
         df_pre = pd.DataFrame(df_pre)
+
         post_period_response = pd.DataFrame(post_period_response)
+
+        data = pd.DataFrame(np.concatenate([df_pre.values,
+            post_period_response.values]))
+
         orig_std_params = (0, 1)
-        res = model_fit(self, ucm_model, estimation, model_args["niter"])
+
+        fitted_model = model_fit(self, ucm_model, estimation,
+            model_args["niter"])
+
         # Compile posterior inferences
-        inferences = compile_posterior_inferences(res, df_pre, None,
-                                                  post_period_response, alpha,
-                                                  orig_std_params, estimation)
-        obs_inter = pre_len = res.model.nobs - len(post_period_response)
+        inferences = compile_posterior_inferences(
+            fitted_model,
+            data,
+            df_pre,
+            None,
+            post_period_response,
+            alpha,
+            orig_std_params,
+            estimation
+        )
+
+        obs_inter = pre_len = fitted_model.model.nobs - len(
+            post_period_response)
+
         self.params["pre_period"] = [0, obs_inter - 1]
         self.params["post_period"] = [obs_inter, -1]
         self.data = pd.concat([df_pre, post_period_response])

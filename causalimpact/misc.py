@@ -37,3 +37,9 @@ def unstandardize(data, orig_std_params):
     data = data.mul(y_sd, axis=1)
     data = data.add(y_mu, axis=1)
     return data
+
+
+def df_print(data, path=None):
+    if path:
+        data.to_csv(path) 
+    print(data)

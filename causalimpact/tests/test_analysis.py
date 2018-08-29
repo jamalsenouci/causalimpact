@@ -1,5 +1,6 @@
 """Unit Tests for analysis module."""
 
+import mock
 import pytest
 import numpy as np
 import pandas as pd
@@ -790,3 +791,59 @@ class TestRunWithUCM(object):
         impact_ucm.run()
         actual_columns = list(impact_ucm.inferences.columns)
         assert actual_columns == expected_columns
+
+
+def test_summary(monkeypatch):
+    print_mock = mock.Mock()
+
+    inference_result = {
+        'response': np.array([1., 2., 3., 4.]),
+        'point_pred': np.array([1.1, 2.2, 3.1, 4.1]),
+        'point_pred_upper': np.array([1.5, 2.6, 3.4, 4.4]),
+        'point_pred_lower': np.array([1.0, 2.0, 3.0, 4.0])
+    }
+    inferences_df = pd.DataFrame(inference_result)
+ 
+    #monkeypatch.setattr('builtins.print', print_mock)
+    #monkeypatch.setattr('causalimpact.misc.df_print', print_mock)
+    causal = CausalImpact()
+
+    params = {
+        'alpha': 0.05,
+        'post_period': [2, 4]
+    }
+
+    causal.params = params
+    causal.inferences = inferences_df
+
+    expected = [
+        [3, 7],
+        [3, 7],
+        [[3, 3], [7, 7.8]],
+        [' ', ' '],
+        [0, 0],
+        [[0, 0], [0, 0]],
+        [' ', ' '],
+        ['0.0%', '0.1%'],
+        [['0.0%', '0.1%'], ['0.0%', '0.1%']]
+    ]
+        
+    expected = pd.DataFrame(
+        expected,
+        columns=['Average', 'Cumulative'],
+        index=[
+            'Actual',
+            'Predicted',
+            '95% CI',
+            ' ',
+            'Absolute Effect',
+            '95% CI',
+            ' ',
+            'Relative Effect',
+            '95% CI'
+        ]
+    )
+
+    causal.summary('/tmp/)
+
+    print_mock.assert_called_once_with(expected)

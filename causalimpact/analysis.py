@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from pandas.util.testing import is_list_like
 
-from causalimpact.misc import standardize_all_variables
+from causalimpact.misc import standardize_all_variables, df_print
 from causalimpact.model import construct_model, model_fit
 from causalimpact.inferences import compile_posterior_inferences
 
@@ -346,7 +346,7 @@ class CausalImpact(object):
         self.inferences = inferences["series"]
         self.model = ucm_model
 
-    def summary(self, output="summary", width=120):
+    def summary(self, output="summary", width=120, path=None):
         import textwrap
 
         alpha = self.params["alpha"]
@@ -437,7 +437,7 @@ class CausalImpact(object):
                                           " ",
                                           "Relative Effect",
                                           "95% CI"])
-            print(summary)
+            df_print(summary, path)
         elif output == "report":
             sig = (not ((cum_rel_effect_lower < 0) and
                         (cum_rel_effect_upper > 0)))
@@ -676,3 +676,4 @@ class CausalImpact(object):
             plt.title('Cumulative Impact')
         plt.xlabel('$T$')
         plt.show()
+

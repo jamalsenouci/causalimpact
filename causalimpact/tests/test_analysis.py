@@ -1,6 +1,9 @@
 """Unit Tests for analysis module."""
 
 import mock
+import os
+import re
+from tempfile import TemporaryDirectory
 import pytest
 import numpy as np
 import pandas as pd
@@ -13,6 +16,15 @@ from causalimpact import CausalImpact
 @pytest.fixture()
 def data():
     return pd.DataFrame(np.random.randn(200, 3), columns=["y", "x1", "x2"])
+
+
+@pytest.fixture()
+def summary_report_filename(FIXTURES_FOLDER):
+    return os.path.join(
+        FIXTURES_FOLDER,
+        'analysis',
+        'summary_report_output.txt' 
+    )
 
 
 @pytest.fixture()
@@ -33,6 +45,16 @@ def expected_columns():
         "cum_effect_lower",
         "cum_effect_upper"
     ]
+
+
+@pytest.fixture()
+def inference_input():
+    return {
+        'response': np.array([1., 2., 3., 4.]),
+        'point_pred': np.array([1.1, 2.2, 3.1, 4.1]),
+        'point_pred_upper': np.array([1.5, 2.6, 3.4, 4.4]),
+        'point_pred_lower': np.array([1.0, 2.0, 3.0, 4.0])
+    }
  
 
 @pytest.fixture()
@@ -793,19 +815,9 @@ class TestRunWithUCM(object):
         assert actual_columns == expected_columns
 
 
-def test_summary(monkeypatch):
-    print_mock = mock.Mock()
-
-    inference_result = {
-        'response': np.array([1., 2., 3., 4.]),
-        'point_pred': np.array([1.1, 2.2, 3.1, 4.1]),
-        'point_pred_upper': np.array([1.5, 2.6, 3.4, 4.4]),
-        'point_pred_lower': np.array([1.0, 2.0, 3.0, 4.0])
-    }
-    inferences_df = pd.DataFrame(inference_result)
+def test_summary(inference_input):
+    inferences_df = pd.DataFrame(inference_input)
  
-    #monkeypatch.setattr('builtins.print', print_mock)
-    #monkeypatch.setattr('causalimpact.misc.df_print', print_mock)
     causal = CausalImpact()
 
     params = {
@@ -819,13 +831,13 @@ def test_summary(monkeypatch):
     expected = [
         [3, 7],
         [3, 7],
-        [[3, 3], [7, 7.8]],
+        [[3, 3], [7, 7]],
         [' ', ' '],
         [0, 0],
         [[0, 0], [0, 0]],
         [' ', ' '],
-        ['0.0%', '0.1%'],
-        [['0.0%', '0.1%'], ['0.0%', '0.1%']]
+        ['-2.8%', '-2.8%'],
+        [['0.0%', '-11.1%'], ['0.0%', '-11.1%']]
     ]
         
     expected = pd.DataFrame(
@@ -844,6 +856,76 @@ def test_summary(monkeypatch):
         ]
     )
 
-    causal.summary('/tmp/)
+    with TemporaryDirectory() as tmpdir:
+        tmp_expected = 'tmp_expected'
+        tmp_result = 'tmp_test_summary'
 
-    print_mock.assert_called_once_with(expected)
+        result_file = os.path.join(tmpdir, tmp_result)
+        expected_file = os.path.join(tmpdir, tmp_expected)
+
+        expected.to_csv(expected_file)
+        expected_str = open(expected_file).read()
+
+        causal.summary(path=result_file)
+
+        result = open(result_file).read()
+        assert result == expected_str
+
+
+def test_summary_w_report_output(
+        monkeypatch,
+        inference_input,
+        summary_report_filename
+    ):
+    inferences_df = pd.DataFrame(inference_input)
+ 
+    causal = CausalImpact()
+
+    params = {
+        'alpha': 0.05,
+        'post_period': [2, 4]
+    }
+
+    causal.params = params
+    causal.inferences = inferences_df
+
+    dedent_mock = mock.Mock()
+
+    expected = open(summary_report_filename).read()
+    expected = re.sub(r'\s+', ' ', expected)
+    expected = expected.strip()
+
+    with TemporaryDirectory() as tmpdir:
+        tmp_file = os.path.join(tmpdir, 'summary_test')
+
+        def dedent_side_effect(msg):
+            with open(tmp_file, 'a') as file_obj:
+                msg = re.sub(r'\s+', ' ', msg)
+                msg = msg.strip()
+                file_obj.write(msg)
+            return msg
+
+        dedent_mock.side_effect = dedent_side_effect
+        monkeypatch.setattr('textwrap.dedent', dedent_mock)
+
+        causal.summary(output='report')
+        result_str = open(tmp_file, 'r').read()
+        assert result_str == expected
+
+
+def test_summary_wrong_argument_raises(inference_input):
+    inferences_df = pd.DataFrame(inference_input)
+ 
+    causal = CausalImpact()
+
+    params = {
+        'alpha': 0.05,
+        'post_period': [2, 4]
+    }
+
+    causal.params = params
+    causal.inferences = inferences_df
+
+    with pytest.raises(ValueError):
+        causal.summary(output='wrong_argument')
+

@@ -1,0 +1,10 @@
+,Average,Cumulative
+Actual,3,7
+Predicted,3,7
+95% CI,"[3, 3]","[7, 7]"
+ , , 
+Absolute Effect,0,0
+95% CI,"[0, 0]","[0, 0]"
+ , , 
+Relative Effect,-2.8%,-2.8%
+95% CI,"['0.0%', '-11.1%']","['0.0%', '-11.1%']"

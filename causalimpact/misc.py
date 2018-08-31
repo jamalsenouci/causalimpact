@@ -7,13 +7,19 @@ def standardize_all_variables(data, pre_period, post_period):
               data: Pandas DataFrame with one or more columns
 
           Returns:
-              list of:
+              dict:
                   data: standardized data
                   UnStandardize: function for undoing the transformation of the
                   first column in the provided data
     """
+    if not isinstance(data, pd.DataFrame):
+        raise ValueError("``data`` must be of type `pandas.DataFrame`")
+
+    if not (isinstance(pre_period, list) and isinstance(post_period, list)):
+        raise ValueError("``pre_period`` and ``post_period``must be lists")
+
     data_mu = data.loc[pre_period[0]:pre_period[1], :].mean(skipna=True)
-    data_sd = data.loc[pre_period[0]:pre_period[1], :].std(skipna=True)
+    data_sd = data.loc[pre_period[0]:pre_period[1], :].std(skipna=True, ddof=0)
     data = data - data_mu
     data_sd = data_sd.fillna(1)
 
@@ -23,8 +29,12 @@ def standardize_all_variables(data, pre_period, post_period):
 
     data_pre = data.loc[pre_period[0]:pre_period[1], :]
     data_post = data.loc[post_period[0]:post_period[1], :]
-    return {"data_pre": data_pre, "data_post": data_post,
-            "orig_std_params": (y_mu, y_sd)}
+
+    return {
+        "data_pre": data_pre,
+        "data_post": data_post,
+        "orig_std_params": (y_mu, y_sd)
+    }
 
 
 def unstandardize(data, orig_std_params):

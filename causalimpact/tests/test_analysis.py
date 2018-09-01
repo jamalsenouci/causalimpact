@@ -36,8 +36,8 @@ def expected_columns():
         "response",
         "cum_response",
         "point_pred",
-        "point_pred_upper",
         "point_pred_lower",
+        "point_pred_upper",
         "cum_pred",
         "cum_pred_lower",
         "cum_pred_upper",
@@ -123,8 +123,10 @@ class TestFormatInput(object):
     
         result_other = {key: result[key] for key in result if key not in {
             "model_args", "data"}}
+
         expected_other = {key: expected[key] for key in expected if key not in
             {"model_args", "data"}}
+
         assert result_other == expected_other
     
     def test_input_raises_w_data_and_ucm_model(self, causal_impact,
@@ -168,12 +170,17 @@ class TestFormatInput(object):
 
     def test_format_output_is_df(self, causal_impact):
         # Test that <data> is converted to pandas DataFrame
-        expected_data = pd.DataFrame(np.arange(0, 8).reshape(4, 2),
-                                     index=[0, 1, 2, 3])
+        expected_data = pd.DataFrame(
+            np.arange(0, 8).reshape(4, 2),
+            index=[0, 1, 2, 3]
+        )
+
         funny_datas = [
             pd.DataFrame([[0, 1], [2, 3], [4, 5], [6, 7]]),
-            pd.DataFrame(data=[[0, 1], [2, 3], [4, 5], [6, 7]],
-                         index=[0, 1, 2, 3]),
+            pd.DataFrame(
+                data=[[0, 1], [2, 3], [4, 5], [6, 7]],
+                index=[0, 1, 2, 3]
+            ),
             [[0, 1], [2, 3], [4, 5], [6, 7]],
             np.array([[0, 1], [2, 3], [4, 5], [6, 7]])
         ]

@@ -1,6 +1,6 @@
 """Functions for constructing statespace model."""
 
-# import pymc as mc
+
 import numpy as np
 import pandas as pd
 
@@ -16,7 +16,6 @@ def observations_ill_conditioned(y):
 
     Returns:
         True if something is wrong with the observations; False otherwise.
-
     """
 
     if (y is None):
@@ -26,51 +25,39 @@ def observations_ill_conditioned(y):
 
     # All NA?
     if np.all(pd.isnull(y)):
-        raise ValueError("""Aborting inference due to input series being all
-                         null.""")
+        raise ValueError("Aborting inference due to input series being all "
+                         "null.")
     elif len(y[pd.notnull(y)]) < 3:
         # Fewer than 3 non-NA values?
-        raise ValueError("""Aborting inference due to fewer than 3 nonnull
-                         values in input""")
+        raise ValueError("Aborting inference due to fewer than 3 nonnull "
+                         "values in input.")
     # Constant series?
     elif y.std(skipna=True) == 0:
-        raise ValueError("""Aborting inference due to input series being
-                         constant""")
-
+        raise ValueError("Aborting inference due to input series being "
+                         "constant")
     return False
 
 
 def construct_model(self, data, model_args=None):
-    """Specifies the model and performs inference. Inference means using the data
-    to pass from a prior distribution over parameters and states to a posterior
-    distribution. In a Bayesian framework, estimating a model means to obtain
-    p(parameters | data) from p(data | parameters) and p(parameters). This
-    involves multiplying the prior with the likelihood and normalising the
-    resulting distribution using the marginal likelihood or model evidence,
-    p(data). Computing the evidence poses a virtually intractable
-    high-dimensional integration problem which can be turned into an easier
-    optimization problem using, for instance, an approximate stochastic
-    inference strategy. Here, we use a Markov chain Monte Carlo algorithm, as
-    implemented in the {pymc} package.
+    """Specifies the model and performs inference. Inference means using a
+    technique that combines Kalman Filters with Maximum Likelihood Estimators
+    methods to fit the parameters that best explain the observed data.
+
     Args:
       data: time series of response variable and optional covariates
       model_args: optional list of additional model arguments
 
     Returns:
       An Unobserved Components Model, as returned by UnobservedComponents()
-
     """
     from statsmodels.tsa.statespace.structural import UnobservedComponents
 
-    # extract y variable
     y = data.iloc[:, 0]
 
-    # If the series is ill-conditioned, abort inference
     observations_ill_conditioned(y)
 
-    # specification params
+    #LocalLevel specification of statespace
     ss = {}
-    # Local level
     ss["endog"] = y.values
     ss["level"] = "llevel"
 

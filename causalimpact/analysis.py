@@ -278,16 +278,18 @@ class CausalImpact(object):
             orig_std_params = sd_results["orig_std_params"]
 
         # Construct model and perform inference
-        ucm_model = construct_model(self, df_pre, model_args)
-        res = model_fit(self, ucm_model, estimation, model_args["niter"])
+        model = construct_model(df_pre, model_args)
+        self.model = model
 
-        inferences = compile_posterior_inferences(res, data, df_pre, df_post, None,
-                                                  alpha, orig_std_params,
-                                                  estimation)
+        trained_model = model_fit(model, estimation, model_args["niter"])
+        self.model = trained_model
+
+        inferences = compile_posterior_inferences(trained_model, data, df_pre,
+                                                  df_post, None, alpha,
+                                                  orig_std_params, estimation)
 
         # "append" to 'CausalImpact' object
         self.inferences = inferences["series"]
-        self.model = ucm_model
 
     def _run_with_ucm(self, ucm_model, post_period_response, alpha, model_args,
                       estimation):
@@ -322,7 +324,7 @@ class CausalImpact(object):
 
         orig_std_params = (0, 1)
 
-        fitted_model = model_fit(self, ucm_model, estimation,
+        fitted_model = model_fit(ucm_model, estimation,
             model_args["niter"])
 
         # Compile posterior inferences
@@ -344,7 +346,7 @@ class CausalImpact(object):
         self.params["post_period"] = [obs_inter, -1]
         self.data = pd.concat([df_pre, post_period_response])
         self.inferences = inferences["series"]
-        self.model = ucm_model
+        self.model = fitted_model
 
     def summary(self, output="summary", width=120, path=None):
         import textwrap

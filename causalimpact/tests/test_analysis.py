@@ -1,16 +1,15 @@
 """Unit Tests for analysis module."""
 
 
-import mock
 import os
 import re
-from tempfile import TemporaryDirectory
-
+from tempfile import mkdtemp
+import mock
 import pytest
 import numpy as np
+from numpy.testing import assert_array_equal
 import pandas as pd
 from pandas.util.testing import assert_frame_equal
-from numpy.testing import assert_array_equal
 from statsmodels.tsa.statespace.structural import UnobservedComponents as UCM
 
 from causalimpact import CausalImpact
@@ -26,7 +25,7 @@ def summary_report_filename(FIXTURES_FOLDER):
     return os.path.join(
         FIXTURES_FOLDER,
         'analysis',
-        'summary_report_output.txt' 
+        'summary_report_output.txt'
     )
 
 
@@ -58,7 +57,7 @@ def inference_input():
         'point_pred_upper': np.array([1.5, 2.6, 3.4, 4.4]),
         'point_pred_lower': np.array([1.0, 2.0, 3.0, 4.0])
     }
- 
+
 
 @pytest.fixture()
 def pre_period():
@@ -74,20 +73,21 @@ def post_period():
 def ucm_model(data, post_period):
     data_modeling = data.copy()
     data_modeling[post_period[0]: post_period[1] + 1] = np.nan
-    return UCM(endog=data_modeling.iloc[:,  0].values, level="llevel")
+    return UCM(endog=data_modeling.iloc[:, 0].values, level="llevel")
 
 
 @pytest.fixture()
 def impact_ucm(ucm_model):
     post_period_response = np.random.randn(100)
-    return CausalImpact(ucm_model=ucm_model,
-        post_period_response=post_period_response)
+    return CausalImpact(
+        ucm_model=ucm_model,
+        post_period_response=post_period_response
+    )
 
 
 @pytest.fixture()
 def causal_impact(data, pre_period, post_period):
     model_args = {"niter": 123}
-    alpha = 0.05
     return CausalImpact(data, pre_period, post_period, model_args)
 
 
@@ -102,7 +102,7 @@ class TestFormatInput(object):
             "post_period_response": None,
             "alpha": causal_impact.params['alpha']
         }
-    
+
         result = causal_impact._format_input(
             causal_impact.params["data"],
             causal_impact.params["pre_period"],
@@ -112,25 +112,27 @@ class TestFormatInput(object):
             None,
             causal_impact.params["alpha"]
         )
-    
+
         result_data = result["data"]
         expected_data = expected["data"]
         assert_frame_equal(result_data, expected_data)
-    
+
         result_model_args = result["model_args"]
         expected_model_args = expected["model_args"]
         assert result_model_args == expected_model_args
-    
-        result_other = {key: result[key] for key in result if key not in {
-            "model_args", "data"}}
 
-        expected_other = {key: expected[key] for key in expected if key not in
-            {"model_args", "data"}}
+        result_other = {
+            key: result[key] for key in result if key not in {
+                "model_args", "data"}
+        }
 
+        expected_other = {
+            key: expected[key] for key in expected if key not in {
+                "model_args", "data"}
+        }
         assert result_other == expected_other
-    
-    def test_input_raises_w_data_and_ucm_model(self, causal_impact,
-        ucm_model):
+
+    def test_input_raises_w_data_and_ucm_model(self, causal_impact, ucm_model):
         # Test inconsistent input (must not provide both data and ucm_model)
         with pytest.raises(SyntaxError) as excinfo:
             causal_impact._format_input(
@@ -142,9 +144,11 @@ class TestFormatInput(object):
                 [1, 2, 3],
                 causal_impact.params["alpha"]
             )
-        assert str(excinfo.value) == ('Must either provide ``data``, '
+        assert str(excinfo.value) == (
+            'Must either provide ``data``, '
             '``pre_period`` ,``post_period``, ``model_args`` or '
-            '``ucm_modeland ``post_period_response``')
+            '``ucm_modeland ``post_period_response``'
+        )
 
     def test_input_w_ucm_input(self, ucm_model, impact_ucm):
         expected = {
@@ -165,7 +169,7 @@ class TestFormatInput(object):
             impact_ucm.params["post_period_response"],
             impact_ucm.params["alpha"]
         )
-        model_args = result.pop('model_args') 
+        model_args = result.pop('model_args')
         assert result == expected
 
     def test_format_output_is_df(self, causal_impact):
@@ -193,7 +197,7 @@ class TestFormatInput(object):
                 {},
                 None,
                 None,
-                0.05 
+                0.05
             )
             assert_array_equal(result["data"].values, expected_data.values)
             assert isinstance(result['data'], pd.DataFrame)
@@ -210,8 +214,10 @@ class TestFormatInput(object):
                 None,
                 0.05
             )
-        assert str(excinfo.value) == ('could not convert input data to '
-            'Pandas DataFrame')
+        assert str(excinfo.value) == (
+            'could not convert input data to '
+            'Pandas DataFrame'
+        )
 
     def test_input_w_bad_pre_period(self, data, causal_impact):
         bad_pre_periods = [
@@ -228,20 +234,20 @@ class TestFormatInput(object):
             'pre_period and post_period must both be of length 2',
             'pre_period and post period must not contain null values',
             ('pre_period (object) and post_period (int64) should have the same'
-            ' class as the time points in the data (int64)')
+             ' class as the time points in the data (int64)')
         ]
-        
+
         for idx, bad_pre_period in enumerate(bad_pre_periods):
             with pytest.raises(ValueError) as excinfo:
-               causal_impact._format_input(
-                   data,
-                   bad_pre_period,
-                   [1, 2],
-                   None,
-                   None,
-                   None,
-                   0.05
-               )
+                causal_impact._format_input(
+                    data,
+                    bad_pre_period,
+                    [1, 2],
+                    None,
+                    None,
+                    None,
+                    0.05
+                )
             assert str(excinfo.value) == errors_list[idx]
 
     def test_input_w_bad_post_period(self, data, causal_impact):
@@ -259,7 +265,7 @@ class TestFormatInput(object):
             'pre_period and post_period must both be of length 2',
             'pre_period and post period must not contain null values',
             ('pre_period (int64) and post_period (object) should have the same'
-            ' class as the time points in the data (int64)')
+             ' class as the time points in the data (int64)')
         ]
 
         for idx, bad_post_period in enumerate(bad_post_periods):
@@ -275,8 +281,8 @@ class TestFormatInput(object):
                 )
             assert str(excinfo.value) == errors_list[idx]
 
-    def test_input_w_pre_and_post_periods_having_distinct_classes(self,
-        causal_impact):
+    def test_input_w_pre_and_post_periods_having_distinct_classes(
+            self, causal_impact):
         # Test what happens when pre_period/post_period has a different class
         # than the timestamps in <data>
         bad_data = pd.DataFrame(
@@ -297,9 +303,11 @@ class TestFormatInput(object):
                 None,
                 0.05
             )
-        assert str(excinfo.value) == ('pre_period (float64) and post_period ('
+        assert str(excinfo.value) == (
+            'pre_period (float64) and post_period ('
             'int64) should have the same class as the time points in the data'
-            ' (object)')
+            ' (object)'
+        )
 
         bad_pre_period = [0, 2]  # integer
         bad_post_period = [3, 3]
@@ -313,9 +321,11 @@ class TestFormatInput(object):
                 None,
                 0.05
             )
-        assert str(excinfo.value) == ('pre_period (int64) and post_period ('
+        assert str(excinfo.value) == (
+            'pre_period (int64) and post_period ('
             'int64) should have the same class as the time points in the data'
-            ' (object)')
+            ' (object)'
+        )
 
 
     def test_bad_model_args(self, data, causal_impact):
@@ -330,7 +340,7 @@ class TestFormatInput(object):
                 0.05
             )
         assert str(excinfo.value) == "argument of type 'int' is not iterable"
-            
+
         with pytest.raises(TypeError) as excinfo:
             causal_impact._format_input(
                 data,
@@ -341,9 +351,10 @@ class TestFormatInput(object):
                 None,
                 0.05
             )
-        assert str(excinfo.value) == ("'str' object does not support item"
-            " assignment")
- 
+        assert str(excinfo.value) == (
+            "'str' object does not support item assignment"
+        )
+
 
     def test_bad_standardize(self, data, causal_impact):
         bad_standardize_data = [np.nan, 123, "foo", [True, False]]
@@ -359,8 +370,9 @@ class TestFormatInput(object):
                     None,
                     0.05
                 )
-            assert str(excinfo.value) == ("model_args.standardize_data must be"
-                 " a boolean value")
+            assert str(excinfo.value) == (
+                "model_args.standardize_data must be a boolean value"
+            )
 
     def test_bad_post_period_response(self, causal_impact, impact_ucm):
         # Note that consistency with ucm.model is not tested in format_input()
@@ -398,8 +410,9 @@ class TestFormatInput(object):
                 [pd.to_datetime('2018-01-01')],
                 0.05
             )
-        assert str(excinfo.value) == ('post_period_response should not be '
-            'datetime values')
+        assert str(excinfo.value) == (
+            'post_period_response should not be datetime values'
+        )
 
         with pytest.raises(ValueError) as excinfo:
             causal_impact._format_input(
@@ -411,8 +424,9 @@ class TestFormatInput(object):
                 [2j],
                 0.05
             )
-        assert str(excinfo.value) == ('post_period_response must contain all '
-            'real values')
+        assert str(excinfo.value) == (
+            'post_period_response must contain all real values'
+        )
 
     def test_bad_alpha(self, data, causal_impact):
         bad_alphas = [None, np.nan, -1, 0, 1, [0.8, 0.9], "0.1"]
@@ -427,18 +441,18 @@ class TestFormatInput(object):
                     None,
                     bad_alpha
                 )
-        assert str(excinfo.value) == ('alpha must be a real number')
+        assert str(excinfo.value) == 'alpha must be a real number'
 
     def test_input_w_date_column(self):
-        data = pd.DataFrame(np.random.randn(100, 2), columns=['x1', 'x2']) 
-        data['date'] = pd.date_range(start='2018-01-01', periods=100) 
+        data = pd.DataFrame(np.random.randn(100, 2), columns=['x1', 'x2'])
+        data['date'] = pd.date_range(start='2018-01-01', periods=100)
         data = data[['date', 'x1', 'x2']]
         pre_period = ['2018-01-01', '2018-02-10']
         post_period = ['2018-02-11', '2018-4-10']
-        causal_impact =  CausalImpact(data, pre_period, post_period, {})
+        causal_impact = CausalImpact(data, pre_period, post_period, {})
         data = data.set_index('date')
-        pre_period = list(map(pd.to_datetime, pre_period))
-        post_period = list(map(pd.to_datetime, post_period))
+        pre_period = [pd.to_datetime(e) for e in pre_period]
+        post_period = [pd.to_datetime(e) for e in post_period]
 
         expected = {
             "data": data,
@@ -449,7 +463,7 @@ class TestFormatInput(object):
             "post_period_response": None,
             "alpha": causal_impact.params['alpha']
         }
-    
+
         result = causal_impact._format_input(
             causal_impact.params["data"],
             causal_impact.params["pre_period"],
@@ -459,32 +473,36 @@ class TestFormatInput(object):
             None,
             causal_impact.params["alpha"]
         )
-    
+
         result_data = result["data"]
         expected_data = expected["data"]
         assert_frame_equal(result_data, expected_data)
-    
+
         result_model_args = result["model_args"]
         expected_model_args = expected["model_args"]
         assert result_model_args == expected_model_args
-    
+
         result_other = {key: result[key] for key in result if key not in {
             "model_args", "data"}}
 
-        expected_other = {key: expected[key] for key in expected if key not in
-            {"model_args", "data"}}
+        expected_other = {
+            key: expected[key] for key in expected if key not in {
+                "model_args", "data"}
+        }
         assert result_other == expected_other
- 
+
     def test_input_w_time_column(self):
-        data = pd.DataFrame(np.random.randn(100, 2), columns=['x1', 'x2']) 
-        data['time'] = pd.date_range(start='2018-01-01', periods=100) 
+        data = pd.DataFrame(np.random.randn(100, 2), columns=['x1', 'x2'])
+        data['time'] = pd.date_range(start='2018-01-01', periods=100)
         data = data[['time', 'x1', 'x2']]
         pre_period = ['2018-01-01', '2018-02-10']
         post_period = ['2018-02-11', '2018-4-10']
-        causal_impact =  CausalImpact(data, pre_period, post_period, {})
+
+        causal_impact = CausalImpact(data, pre_period, post_period, {})
+
         data = data.set_index('time')
-        pre_period = list(map(pd.to_datetime, pre_period))
-        post_period = list(map(pd.to_datetime, post_period))
+        pre_period = [pd.to_datetime(e) for e in pre_period]
+        post_period = [pd.to_datetime(e) for e in post_period]
 
         expected = {
             "data": data,
@@ -495,7 +513,7 @@ class TestFormatInput(object):
             "post_period_response": None,
             "alpha": causal_impact.params['alpha']
         }
-    
+
         result = causal_impact._format_input(
             causal_impact.params["data"],
             causal_impact.params["pre_period"],
@@ -505,27 +523,30 @@ class TestFormatInput(object):
             None,
             causal_impact.params["alpha"]
         )
-    
+
         result_data = result["data"]
         expected_data = expected["data"]
         assert_frame_equal(result_data, expected_data)
-    
+
         result_model_args = result["model_args"]
         expected_model_args = expected["model_args"]
         assert result_model_args == expected_model_args
-    
-        result_other = {key: result[key] for key in result if key not in {
-            "model_args", "data"}}
 
-        expected_other = {key: expected[key] for key in expected if key not in
+        result_other = {
+            key: result[key] for key in result if key not in {
+                "model_args", "data"}
+        }
+
+        expected_other = {
+            key: expected[key] for key in expected if key not in
             {"model_args", "data"}}
         assert result_other == expected_other
 
     def test_input_w_just_2_points_raises_exception(self):
-        data = pd.DataFrame(np.random.randn(2, 2), columns=['x1', 'x2']) 
-        causal_impact =  CausalImpact(data, [0, 0], [1, 1], {})
+        data = pd.DataFrame(np.random.randn(2, 2), columns=['x1', 'x2'])
+        causal_impact = CausalImpact(data, [0, 0], [1, 1], {})
 
-        with pytest.raises(ValueError) as excinfo: 
+        with pytest.raises(ValueError) as excinfo:
             causal_impact._format_input(
                 causal_impact.params["data"],
                 causal_impact.params["pre_period"],
@@ -547,10 +568,10 @@ class TestFormatInput(object):
                 [1, 6, 7]
             ]
         )
-        data = pd.DataFrame(data, columns = ['y', 'x1', 'x2'])
-        causal_impact =  CausalImpact(data, [0, 3], [3, 4], {})
+        data = pd.DataFrame(data, columns=['y', 'x1', 'x2'])
+        causal_impact = CausalImpact(data, [0, 3], [3, 4], {})
 
-        with pytest.raises(ValueError) as excinfo: 
+        with pytest.raises(ValueError) as excinfo:
             causal_impact._format_input(
                 causal_impact.params["data"],
                 causal_impact.params["pre_period"],
@@ -562,8 +583,9 @@ class TestFormatInput(object):
             )
         assert str(excinfo.value) == 'covariates must not contain null values'
 
-    def test_int_index_pre_period_contains_float(self, causal_impact,
-        pre_period):
+    def test_int_index_pre_period_contains_float(
+            self, causal_impact, pre_period
+    ):
         expected = {
             "data": causal_impact.params['data'],
             "pre_period": causal_impact.params['pre_period'],
@@ -573,7 +595,7 @@ class TestFormatInput(object):
             "post_period_response": None,
             "alpha": causal_impact.params['alpha']
         }
-    
+
         result = causal_impact._format_input(
             causal_impact.params["data"],
             [float(pre_period[0]), pre_period[1]],
@@ -583,26 +605,31 @@ class TestFormatInput(object):
             None,
             causal_impact.params["alpha"]
         )
-    
+
         result_data = result["data"]
         expected_data = expected["data"]
         assert_frame_equal(result_data, expected_data)
-    
+
         result_model_args = result["model_args"]
         expected_model_args = expected["model_args"]
         assert result_model_args == expected_model_args
-    
-        result_other = {key: result[key] for key in result if key not in {
-            "model_args", "data"}}
-        expected_other = {key: expected[key] for key in expected if key not in
-            {"model_args", "data"}}
+
+        result_other = {
+            key: result[key] for key in result if key not in {
+                "model_args", "data"}
+        }
+
+        expected_other = {
+            key: expected[key] for key in expected if key not in {
+                "model_args", "data"}
+        }
         assert result_other == expected_other
- 
+
     def test_float_index_pre_period_contains_int(self):
         data = np.random.randn(200, 3)
-        data = pd.DataFrame(data, columns = ['y', 'x1', 'x2'])
+        data = pd.DataFrame(data, columns=['y', 'x1', 'x2'])
         data = data.set_index(np.array([float(i) for i in range(200)]))
-        causal_impact =  CausalImpact(data, [0, 3], [3, 4], {})
+        causal_impact = CausalImpact(data, [0, 3], [3, 4], {})
 
         expected = {
             "data": causal_impact.params['data'],
@@ -613,7 +640,7 @@ class TestFormatInput(object):
             "post_period_response": None,
             "alpha": causal_impact.params['alpha']
         }
-    
+
         result = causal_impact._format_input(
             causal_impact.params["data"],
             causal_impact.params["pre_period"],
@@ -623,26 +650,30 @@ class TestFormatInput(object):
             None,
             causal_impact.params["alpha"]
         )
-    
+
         result_data = result["data"]
         expected_data = expected["data"]
         assert_frame_equal(result_data, expected_data)
-    
+
         result_model_args = result["model_args"]
         expected_model_args = expected["model_args"]
         assert result_model_args == expected_model_args
-    
-        result_other = {key: result[key] for key in result if key not in {
-            "model_args", "data"}}
-        expected_other = {key: expected[key] for key in expected if key not in
-            {"model_args", "data"}}
+
+        result_other = {
+            key: result[key] for key in result if key not in {
+                "model_args", "data"}
+        }
+        expected_other = {
+            key: expected[key] for key in expected if key not in {
+                "model_args", "data"}
+        }
         assert result_other == expected_other
 
     def test_pre_period_in_conflict_w_post_period(self):
-        data = pd.DataFrame(np.random.randn(20, 2), columns=['x1', 'x2']) 
-        causal_impact =  CausalImpact(data, [0, 10], [9, 20], {})
+        data = pd.DataFrame(np.random.randn(20, 2), columns=['x1', 'x2'])
+        causal_impact = CausalImpact(data, [0, 10], [9, 20], {})
 
-        with pytest.raises(ValueError) as excinfo: 
+        with pytest.raises(ValueError) as excinfo:
             causal_impact._format_input(
                 causal_impact.params["data"],
                 causal_impact.params["pre_period"],
@@ -652,11 +683,13 @@ class TestFormatInput(object):
                 None,
                 causal_impact.params["alpha"]
             )
-        assert str(excinfo.value) == ('post period must start at least 1 '
-            'observation after the end of the pre_period')
-    
-        causal_impact =  CausalImpact(data, [0, 10], [11, 9], {})
-        with pytest.raises(ValueError) as excinfo: 
+        assert str(excinfo.value) == (
+            'post period must start at least 1 observation after the end of '
+            'the pre_period'
+        )
+
+        causal_impact = CausalImpact(data, [0, 10], [11, 9], {})
+        with pytest.raises(ValueError) as excinfo:
             causal_impact._format_input(
                 causal_impact.params["data"],
                 causal_impact.params["pre_period"],
@@ -666,11 +699,12 @@ class TestFormatInput(object):
                 None,
                 causal_impact.params["alpha"]
             )
-        assert str(excinfo.value) == ('post_period[1] must not be earlier '
-            'than post_period[0]')
+        assert str(excinfo.value) == (
+            'post_period[1] must not be earlier than post_period[0]'
+        )
 
-        causal_impact =  CausalImpact(data, [0, 10], [11, 9], {})
-        with pytest.raises(ValueError) as excinfo: 
+        causal_impact = CausalImpact(data, [0, 10], [11, 9], {})
+        with pytest.raises(ValueError) as excinfo:
             causal_impact._format_input(
                 causal_impact.params["data"],
                 causal_impact.params["pre_period"],
@@ -680,23 +714,32 @@ class TestFormatInput(object):
                 None,
                 causal_impact.params["alpha"]
             )
-        assert str(excinfo.value) == ('post_period[1] must not be earlier '
-            'than post_period[0]')
+        assert str(excinfo.value) == (
+            'post_period[1] must not be earlier than post_period[0]'
+        )
 
- 
+
 class TestRunWithData(object):
     def test_missing_input(self):
         with pytest.raises(SyntaxError):
             impact = CausalImpact()
             impact.run()
 
-    def test_unlabelled_pandas_series(self, expected_columns, pre_period,
-            post_period):
+    def test_unlabelled_pandas_series(
+            self, expected_columns, pre_period, post_period):
         model_args = {"niter": 123, 'standardize_data': False}
         alpha = 0.05
         data = pd.DataFrame(np.random.randn(200, 3))
-        causal_impact = CausalImpact(data.values, pre_period, post_period,
-             model_args, None, None, alpha, "MLE")
+        causal_impact = CausalImpact(
+            data.values,
+            pre_period,
+            post_period,
+            model_args,
+            None,
+            None,
+            alpha,
+            "MLE"
+        )
 
         causal_impact.run()
         actual_columns = list(causal_impact.inferences.columns)
@@ -762,19 +805,19 @@ class TestRunWithData(object):
         impact = CausalImpact(data, pre_period, post_period)
         impact.run()
         assert np.all(pd.isnull(impact.inferences.loc[
-                      101:119, impact.inferences.columns[2:]]))
+            101:119, impact.inferences.columns[2:]]))
 
     def test_late_start_early_finish_and_gap_between_periods(self, data):
         pre_period = [3, 80]
         post_period = [120, 197]
         impact = CausalImpact(data, pre_period, post_period)
         impact.run()
-        assert np.all(pd.isnull(impact.inferences.loc[
-                      :2, impact.inferences.columns[2:]]))
-        assert np.all(pd.isnull(impact.inferences.loc[
-                      81:119, impact.inferences.columns[2:]]))
-        assert np.all(pd.isnull(impact.inferences.loc[
-                      198:, impact.inferences.columns[2:]]))
+        assert np.all(pd.isnull(
+            impact.inferences.loc[:2, impact.inferences.columns[2:]]))
+        assert np.all(pd.isnull(
+            impact.inferences.loc[81:119, impact.inferences.columns[2:]]))
+        assert np.all(pd.isnull(
+            impact.inferences.loc[198:, impact.inferences.columns[2:]]))
 
     def test_pre_period_lower_than_data_index_min(self, data):
         pre_period = [-1, 100]
@@ -801,21 +844,23 @@ class TestRunWithData(object):
         with point predictions have missing values at the time points the
         result time series has missing values."""
 
-        predicted_cols = [impact.inferences.columns.get_loc(col) for col in
+        predicted_cols = [
+            impact.inferences.columns.get_loc(col) for col in
             impact.inferences.columns if
-                ("response" not in col and "point_effect" not in col)]
+            ("response" not in col and "point_effect" not in col)
+        ]
 
         effect_cols = [impact.inferences.columns.get_loc(col) for col in
-            impact.inferences.columns if "point_effect" in col]
+                       impact.inferences.columns if "point_effect" in col]
 
         response_cols = [impact.inferences.columns.get_loc(col) for col in
-            impact.inferences.columns if "response" in col]
+                         impact.inferences.columns if "response" in col]
 
         assert np.all(np.isnan(impact.inferences.iloc[95:100, response_cols]))
         assert (np.any(np.isnan(
             impact.inferences.iloc[95:100, predicted_cols])) == False)
-        assert (np.any(np.isnan(impact.inferences.iloc[:95, :])) == False)
-        assert (np.any(np.isnan(impact.inferences.iloc[101:, :])) == False)
+        assert np.any(np.isnan(impact.inferences.iloc[:95, :])) == False
+        assert np.any(np.isnan(impact.inferences.iloc[101:, :])) == False
 
 
 class TestRunWithUCM(object):
@@ -829,15 +874,15 @@ class TestSummary(object):
     def test_summary(self, inference_input):
         inferences_df = pd.DataFrame(inference_input)
         causal = CausalImpact()
-    
+
         params = {
             'alpha': 0.05,
             'post_period': [2, 4]
         }
-    
+
         causal.params = params
         causal.inferences = inferences_df
-    
+
         expected = [
             [3, 7],
             [3, 7],
@@ -849,7 +894,7 @@ class TestSummary(object):
             ['-2.8%', '-2.8%'],
             [['0.0%', '-11.1%'], ['0.0%', '-11.1%']]
         ]
-            
+
         expected = pd.DataFrame(
             expected,
             columns=['Average', 'Cumulative'],
@@ -865,22 +910,22 @@ class TestSummary(object):
                 '95% CI'
             ]
         )
-    
-        with TemporaryDirectory() as tmpdir:
-            tmp_expected = 'tmp_expected'
-            tmp_result = 'tmp_test_summary'
-    
-            result_file = os.path.join(tmpdir, tmp_result)
-            expected_file = os.path.join(tmpdir, tmp_expected)
-    
-            expected.to_csv(expected_file)
-            expected_str = open(expected_file).read()
-    
-            causal.summary(path=result_file)
-    
-            result = open(result_file).read()
-            assert result == expected_str
-    
+
+        tmpdir = mkdtemp()
+        tmp_expected = 'tmp_expected'
+        tmp_result = 'tmp_test_summary'
+
+        result_file = os.path.join(tmpdir, tmp_result)
+        expected_file = os.path.join(tmpdir, tmp_expected)
+
+        expected.to_csv(expected_file)
+        expected_str = open(expected_file).read()
+
+        causal.summary(path=result_file)
+
+        result = open(result_file).read()
+        assert result == expected_str
+
     def test_summary_w_report_output(
             self,
             monkeypatch,
@@ -889,70 +934,70 @@ class TestSummary(object):
         ):
         inferences_df = pd.DataFrame(inference_input)
         causal = CausalImpact()
-    
+
         params = {
             'alpha': 0.05,
             'post_period': [2, 4]
         }
-    
+
         causal.params = params
         causal.inferences = inferences_df
-    
+
         dedent_mock = mock.Mock()
-    
+
         expected = open(summary_report_filename).read()
         expected = re.sub(r'\s+', ' ', expected)
         expected = expected.strip()
-    
-        with TemporaryDirectory() as tmpdir:
-            tmp_file = os.path.join(tmpdir, 'summary_test')
-    
-            def dedent_side_effect(msg):
-                with open(tmp_file, 'a') as file_obj:
-                    msg = re.sub(r'\s+', ' ', msg)
-                    msg = msg.strip()
-                    file_obj.write(msg)
-                return msg
-    
-            dedent_mock.side_effect = dedent_side_effect
-            monkeypatch.setattr('textwrap.dedent', dedent_mock)
-    
-            causal.summary(output='report')
-            result_str = open(tmp_file, 'r').read()
-            assert result_str == expected
-    
+
+        tmpdir = mkdtemp()
+        tmp_file = os.path.join(tmpdir, 'summary_test')
+
+        def dedent_side_effect(msg):
+            with open(tmp_file, 'a') as file_obj:
+                msg = re.sub(r'\s+', ' ', msg)
+                msg = msg.strip()
+                file_obj.write(msg)
+            return msg
+
+        dedent_mock.side_effect = dedent_side_effect
+        monkeypatch.setattr('textwrap.dedent', dedent_mock)
+
+        causal.summary(output='report')
+        result_str = open(tmp_file, 'r').read()
+        assert result_str == expected
+
     def test_summary_wrong_argument_raises(self, inference_input):
         inferences_df = pd.DataFrame(inference_input)
         causal = CausalImpact()
-    
+
         params = {
             'alpha': 0.05,
             'post_period': [2, 4]
         }
-    
+
         causal.params = params
         causal.inferences = inferences_df
-    
+
         with pytest.raises(ValueError):
             causal.summary(output='wrong_argument')
 
 class TestPlot(object):
     def test_plot(self, monkeypatch):
         causal = CausalImpact()
-     
+
         params = {
             'alpha': 0.05,
             'post_period': [2, 4],
             'pre_period': [0, 1]
         }
-    
+
         inferences_mock = {
             'point_pred': 'points predicted',
             'response': 'y obs',
             'point_pred_lower': 'lower predictions',
             'point_pred_upper': 'upper predictions'
         }
-    
+
         class Inferences(object):
             @property
             def iloc(self):
@@ -965,7 +1010,7 @@ class TestPlot(object):
 
                             @property
                             def point_effect(self):
-                                return 'lift' 
+                                return 'lift'
 
                             @property
                             def point_effect_lower(self):
@@ -997,27 +1042,27 @@ class TestPlot(object):
             @property
             def shape(self):
                 return [(1, 2)]
-    
+
         plot_mock = mock.Mock()
         fill_mock = mock.Mock()
         show_mock = mock.Mock()
         np_zeros_mock = mock.Mock()
         np_zeros_mock.side_effect = lambda x: [0, 0]
-     
+
         monkeypatch.setattr('matplotlib.pyplot.plot', plot_mock)
         monkeypatch.setattr('matplotlib.pyplot.fill_between', fill_mock)
         monkeypatch.setattr('matplotlib.pyplot.show', show_mock)
         monkeypatch.setattr('numpy.zeros', np_zeros_mock)
-     
+
         causal.params = params
         causal.inferences = Inferences()
         causal.data = Data()
-     
+
         causal.plot(panels=['original', 'pointwise', 'cumulative'])
         causal.plot(panels=['pointwise', 'cumulative'])
 
         causal.plot(panels=['original'])
- 
+
         plot_mock.assert_any_call('y obs', 'k', label='endog', linewidth=2)
         plot_mock.assert_any_call(
             'points predicted',
@@ -1031,7 +1076,7 @@ class TestPlot(object):
             'lower predictions',
             'upper predictions',
             facecolor='gray',
-            interpolate=True, 
+            interpolate=True,
             alpha=0.25
         )
 

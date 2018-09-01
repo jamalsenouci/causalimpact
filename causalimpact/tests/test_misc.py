@@ -1,12 +1,11 @@
 """Tests for misc module."""
 
-import mock
 
+import mock
 import numpy as np
 import pandas as pd
-import pytest
 from pandas.util.testing import assert_frame_equal, assert_almost_equal
-from numpy.testing import assert_array_equal
+import pytest
 
 import causalimpact
 
@@ -47,7 +46,7 @@ def test_standardize_returns_expected_types():
 
     result = standardize(data, pre_period, post_period)
 
-    assert type(result) == dict
+    assert isinstance(result, dict)
     assert set(result.keys()) == set(["data_pre", "data_post",
                                       "orig_std_params"])
 
@@ -60,10 +59,10 @@ def test_standardize_returns_expected_types():
 
 def test_standardize_w_distinct_inputs():
     test_data = [
-       [1],
-       [1, 1, 1],
-       [1, np.nan, 3],
-       pd.DataFrame([10, 20, 30])
+        [1],
+        [1, 1, 1],
+        [1, np.nan, 3],
+        pd.DataFrame([10, 20, 30])
     ]
 
     test_data = [pd.DataFrame(data, dtype="float") for data in test_data]
@@ -76,8 +75,8 @@ def test_standardize_w_distinct_inputs():
         )
 
         pd.util.testing.assert_frame_equal(
-           unstandardize(result['data_pre'], result['orig_std_params']),
-           data
+            unstandardize(result['data_pre'], result['orig_std_params']),
+            data
         )
 
 
@@ -90,7 +89,7 @@ def test_standardize_raises_w_bad_input():
 
 
 def test_unstandardize():
-    data = np.array([-1.16247639, -0.11624764,  1.27872403])
+    data = np.array([-1.16247639, -0.11624764, 1.27872403])
     orig_std_params = (4.3333333, 2.8674417556)
     original_data = unstandardize(data, orig_std_params)
 
@@ -99,7 +98,7 @@ def test_unstandardize():
 
 def test_df_print():
     data_mock = mock.Mock()
-    df_print(data_mock) 
+    df_print(data_mock)
     data_mock.assert_not_called()
 
     df_print(data_mock, path='path')

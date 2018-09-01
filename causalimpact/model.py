@@ -38,7 +38,7 @@ def observations_ill_conditioned(y):
     return False
 
 
-def construct_model(self, data, model_args=None):
+def construct_model(data, model_args={}):
     """Specifies the model and performs inference. Inference means using a
     technique that combines Kalman Filters with Maximum Likelihood Estimators
     methods to fit the parameters that best explain the observed data.
@@ -61,30 +61,24 @@ def construct_model(self, data, model_args=None):
     ss["endog"] = y.values
     ss["level"] = "llevel"
 
-    # Add seasonal component?
-    if model_args["nseasons"] > 1:
-        ss["seasonal_period"] = model_args["season_duration"]
-
     # No regression?
     if len(data.columns) == 1:
         mod = UnobservedComponents(**ss)
         return mod
     else:
         # Static regression
-        if not model_args["dynamic_regression"]:
+        if not model_args.get("dynamic_regression"):
             ss["exog"] = data.iloc[:, 1:].values
             mod = UnobservedComponents(**ss)
-            self.model = mod
             return mod
         # Dynamic regression
         else:
             raise NotImplementedError()
 
 
-def model_fit(self, model, estimation, niter):
+def model_fit(model, estimation, niter):
     if estimation == "MLE":
-        model = model.fit(maxiter=niter)
-        self.model = model
-        return self.model
+        trained_model = model.fit(maxiter=niter)
+        return trained_model 
     else:
         raise NotImplementedError()

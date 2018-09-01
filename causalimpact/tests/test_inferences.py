@@ -4,7 +4,6 @@
 import pytest
 import numpy as np
 import pandas as pd
-import statsmodels as sm
 from pandas.util.testing import assert_series_equal
 from statsmodels.tsa.statespace.structural import UnobservedComponents
 from statsmodels.tsa.arima_process import ArmaProcess
@@ -20,7 +19,7 @@ def data():
     ar = np.r_[1, 0.9]
     ma = np.array([1])
     arma_process = ArmaProcess(ar, ma)
-    
+
     X = 1 + arma_process.generate_sample(nsample=100)
     X = X.reshape(-1, 1)
     y = 1.2 * X + np.random.normal(size=(100, 1))
@@ -36,7 +35,7 @@ def test_compile_posterior_inferences_w_data(data):
     df_pre = data.loc[pre_period[0]: pre_period[1], :]
     df_post = data.loc[post_period[0]: post_period[1], :]
 
-    post_period_response = None 
+    post_period_response = None
     alpha = 0.05
     orig_std_params = (0., 1.)
 
@@ -59,7 +58,7 @@ def test_compile_posterior_inferences_w_data(data):
     )
 
     expected_response = pd.Series(data.iloc[:, 0], name='response')
-    assert_series_equal(expected_response, inferences['series']['response'])    
+    assert_series_equal(expected_response, inferences['series']['response'])
 
     expected_cumsum = pd.Series(
         np.cumsum(expected_response),
@@ -90,7 +89,7 @@ def test_compile_posterior_inferences_w_data(data):
     pre_ci.index = df_pre.index
     post_ci = forecaster.conf_int(alpha=alpha)
     post_ci.index = df_post.index
- 
+
     ci = pd.concat([pre_ci, post_ci])
 
     expected_pred_upper = ci['upper y']
@@ -115,11 +114,11 @@ def test_compile_posterior_inferences_w_data(data):
         expected_cum_pred,
         inferences['series']['cum_pred']
     )
-    
+
     expected_cum_pred_lower = pd.Series(
         np.cumsum(expected_pred_lower),
         name='cum_pred_lower'
-    )    
+    )
     assert_series_equal(
         expected_cum_pred_lower,
         inferences['series']['cum_pred_lower']
@@ -128,7 +127,7 @@ def test_compile_posterior_inferences_w_data(data):
     expected_cum_pred_upper = pd.Series(
         np.cumsum(expected_pred_upper),
         name='cum_pred_upper'
-    )    
+    )
     assert_series_equal(
         expected_cum_pred_upper,
         inferences['series']['cum_pred_upper']
@@ -163,17 +162,18 @@ def test_compile_posterior_inferences_w_data(data):
 
     expected_cum_effect = pd.Series(
         np.concatenate((np.zeros(len(df_pre)),
-        np.cumsum(expected_point_effect.iloc[len(df_pre):]))),
+                        np.cumsum(expected_point_effect.iloc[len(df_pre):]))),
         name='cum_effect'
     )
     assert_series_equal(
         expected_cum_effect,
         inferences['series']['cum_effect']
-    ) 
+    )
 
     expected_cum_effect_lower = pd.Series(
-        np.concatenate((np.zeros(len(df_pre)),
-        np.cumsum(expected_point_effect_lower.iloc[len(df_pre):]))),
+        np.concatenate(
+            (np.zeros(len(df_pre)),
+             np.cumsum(expected_point_effect_lower.iloc[len(df_pre):]))),
         name='cum_effect_lower'
     )
     assert_series_equal(
@@ -182,8 +182,10 @@ def test_compile_posterior_inferences_w_data(data):
     )
 
     expected_cum_effect_upper = pd.Series(
-        np.concatenate((np.zeros(len(df_pre)),
-        np.cumsum(expected_point_effect_upper.iloc[len(df_pre):]))),
+        np.concatenate((
+            np.zeros(len(df_pre)),
+            np.cumsum(expected_point_effect_upper.iloc[len(df_pre):])
+        )),
         name='cum_effect_upper'
     )
     assert_series_equal(
@@ -260,7 +262,7 @@ def test_compile_posterior_inferences_w_post_period_response(data):
     pre_ci.index = df_pre.index
     post_ci = forecaster.conf_int(alpha=alpha)
     post_ci.index = df_post.index
- 
+
     ci = pd.concat([pre_ci, post_ci])
 
     expected_pred_upper = ci['upper y']
@@ -288,11 +290,11 @@ def test_compile_posterior_inferences_w_post_period_response(data):
         expected_cum_pred,
         inferences['series']['cum_pred']
     )
-    
+
     expected_cum_pred_lower = pd.Series(
         np.cumsum(expected_pred_lower),
         name='cum_pred_lower'
-    )    
+    )
     assert_series_equal(
         expected_cum_pred_lower,
         inferences['series']['cum_pred_lower']
@@ -301,7 +303,7 @@ def test_compile_posterior_inferences_w_post_period_response(data):
     expected_cum_pred_upper = pd.Series(
         np.cumsum(expected_pred_upper),
         name='cum_pred_upper'
-    )    
+    )
     assert_series_equal(
         expected_cum_pred_upper,
         inferences['series']['cum_pred_upper']
@@ -335,18 +337,22 @@ def test_compile_posterior_inferences_w_post_period_response(data):
     )
 
     expected_cum_effect = pd.Series(
-        np.concatenate((np.zeros(len(df_pre)),
-        np.cumsum(expected_point_effect.iloc[len(df_pre):]))),
+        np.concatenate((
+            np.zeros(len(df_pre)),
+            np.cumsum(expected_point_effect.iloc[len(df_pre):])
+        )),
         name='cum_effect'
     )
     assert_series_equal(
         expected_cum_effect,
         inferences['series']['cum_effect']
-    ) 
+    )
 
     expected_cum_effect_lower = pd.Series(
-        np.concatenate((np.zeros(len(df_pre)),
-        np.cumsum(expected_point_effect_lower.iloc[len(df_pre):]))),
+        np.concatenate((
+            np.zeros(len(df_pre)),
+            np.cumsum(expected_point_effect_lower.iloc[len(df_pre):])
+        )),
         name='cum_effect_lower'
     )
     assert_series_equal(
@@ -355,8 +361,10 @@ def test_compile_posterior_inferences_w_post_period_response(data):
     )
 
     expected_cum_effect_upper = pd.Series(
-        np.concatenate((np.zeros(len(df_pre)),
-        np.cumsum(expected_point_effect_upper.iloc[len(df_pre):]))),
+        np.concatenate((
+            np.zeros(len(df_pre)),
+            np.cumsum(expected_point_effect_upper.iloc[len(df_pre):])
+        )),
         name='cum_effect_upper'
     )
     assert_series_equal(

@@ -2,7 +2,11 @@ import numpy as np
 import pandas as pd
 from pandas.util.testing import is_list_like
 
-from causalimpact.misc import standardize_all_variables, df_print
+from causalimpact.misc import (
+    standardize_all_variables,
+    df_print,
+    get_matplotlib
+)
 from causalimpact.model import construct_model, model_fit
 from causalimpact.inferences import compile_posterior_inferences
 
@@ -600,7 +604,7 @@ class CausalImpact(object):
                              "or 'report'")
 
     def plot(self, panels=["original", "pointwise", "cumulative"]):
-        import matplotlib.pyplot as plt
+        plt = get_matplotlib()
         plt.figure(figsize=(15, 12))
 
         data_inter = self.params["pre_period"][1]

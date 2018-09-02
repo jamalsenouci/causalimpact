@@ -1049,9 +1049,12 @@ class TestPlot(object):
         np_zeros_mock = mock.Mock()
         np_zeros_mock.side_effect = lambda x: [0, 0]
 
-        monkeypatch.setattr('matplotlib.pyplot.plot', plot_mock)
-        monkeypatch.setattr('matplotlib.pyplot.fill_between', fill_mock)
-        monkeypatch.setattr('matplotlib.pyplot.show', show_mock)
+        get_lib_mock = mock.Mock(return_value=plot_mock)
+        monkeypatch.setattr(
+            'causalimpact.analysis.get_matplotlib',
+            get_lib_mock
+        )
+
         monkeypatch.setattr('numpy.zeros', np_zeros_mock)
 
         causal.params = params
@@ -1063,15 +1066,20 @@ class TestPlot(object):
 
         causal.plot(panels=['original'])
 
-        plot_mock.assert_any_call('y obs', 'k', label='endog', linewidth=2)
-        plot_mock.assert_any_call(
+        plot_mock.plot.assert_any_call(
+            'y obs',
+            'k',
+            label='endog',
+            linewidth=2
+        )
+        plot_mock.plot.assert_any_call(
             'points predicted',
             'r--',
             label='model',
             linewidth=2
         )
 
-        fill_mock.assert_any_call(
+        plot_mock.fill_between.assert_any_call(
             [0, 1],
             'lower predictions',
             'upper predictions',
@@ -1082,10 +1090,15 @@ class TestPlot(object):
 
         causal.plot(panels=['pointwise'])
 
-        plot_mock.assert_any_call('lift', 'r--', linewidth=2)
-        plot_mock.assert_any_call('index', [0, 0], 'g-', linewidth=2)
+        plot_mock.plot.assert_any_call('lift', 'r--', linewidth=2)
+        plot_mock.plot.assert_any_call('index', [0, 0], 'g-', linewidth=2)
 
         causal.plot(panels=['cumulative'])
 
-        plot_mock.assert_any_call([0, 1], 'cum effect', 'r--', linewidth=2)
-        plot_mock.assert_any_call('index', [0, 0], 'g-', linewidth=2)
+        plot_mock.plot.assert_any_call(
+            [0, 1],
+            'cum effect',
+            'r--',
+            linewidth=2
+        )
+        plot_mock.plot.assert_any_call('index', [0, 0], 'g-', linewidth=2)

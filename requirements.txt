@@ -1,5 +1,5 @@
 numpy>=1.10.0
-pandas>=0.20
+pandas>=0.23.4
 statsmodels==0.8.0
 matplotlib
 nose

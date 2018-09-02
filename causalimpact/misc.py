@@ -53,3 +53,14 @@ def df_print(data, path=None):
     if path:
         data.to_csv(path) 
     print(data)
+
+
+def get_matplotlib(): # pragma: no cover
+    """Wrapper function to facilitate unit testing the `plot` tool by removing
+    the strong dependencies of matplotlib.
+
+    Returns:
+        module matplotlib.pyplot
+    """
+    import matplotlib.pyplot as plt
+    return plt

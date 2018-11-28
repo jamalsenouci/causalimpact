@@ -28,8 +28,13 @@ def compile_posterior_inferences(results, data, df_pre, df_post,
                                 orig_std_params)
         post_ci.index = df_post.index
         ci = pd.concat([pre_ci, post_ci])
-        point_pred_upper = ci["upper y"].to_frame()
-        point_pred_lower = ci["lower y"].to_frame()
+
+        if 'upper y' in ci.columns:
+            point_pred_upper = ci["upper y"].to_frame()
+            point_pred_lower = ci["lower y"].to_frame()
+        else:
+            point_pred_upper = ci.loc[:,1]
+            point_pred_lower = ci.loc[:,0]
 
         response = data.iloc[:, 0]
         response_index = data.index

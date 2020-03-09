@@ -19,7 +19,10 @@ matrix:
     - PYTHON=3.6
   - python: 2.7
     env:
-      - PYTHON=3.6
+      - PYTHON=3.7
+  - python: 2.7
+    env:
+      - PYTHON=3.8
       - COVERAGE=true
 # Setup anaconda
 before_install:
@@ -35,7 +38,7 @@ before_install:
   # Useful for debugging any issues with conda
   - conda info -a
 install:
-  - DEPS="numpy scipy pip nose pytest pandas=0.23 statsmodels=0.8.0"
+  - DEPS="numpy scipy pip nose pytest pandas=0.23 statsmodels=0.11.1"
   - conda create -q -n test-environment python=$PYTHON $DEPS
   - source activate test-environment
   - if [ ${COVERAGE} = true ]; then export COVERAGE_OPTS=" --cov-config=.travis_coveragerc --cov=causalimpact "; else export COVERAGE_OPTS=""; fi

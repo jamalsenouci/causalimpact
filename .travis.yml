@@ -37,6 +37,7 @@ before_install:
   - conda update -q conda
   # Useful for debugging any issues with conda
   - conda info -a
+  - conda config --add channels conda-forge
 install:
   - DEPS="numpy scipy pip nose pytest pandas=0.23 statsmodels=0.11.1"
   - conda create -q -n test-environment python=$PYTHON $DEPS

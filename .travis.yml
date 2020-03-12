@@ -39,7 +39,7 @@ before_install:
   - conda info -a
   - conda config --add channels conda-forge
 install:
-  - DEPS="numpy scipy pip nose pytest pandas>=0.25 statsmodels>=0.11.0"
+  - DEPS="numpy scipy pip nose pytest pandas statsmodels"
   - conda create -q -n test-environment python=$PYTHON $DEPS
   - source activate test-environment
   - if [ ${COVERAGE} = true ]; then export COVERAGE_OPTS=" --cov-config=.travis_coveragerc --cov=causalimpact "; else export COVERAGE_OPTS=""; fi

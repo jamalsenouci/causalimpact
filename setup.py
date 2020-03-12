@@ -37,7 +37,7 @@ config = {
     'download_url': 'https://pypi.python.org/pypi/causalimpact/',
     'version': '0.1.4',
     'platforms': ['Linux', 'Mac OSX', 'Windows', 'Unix'],
-    'install_requires': ['numpy >= 1.10.0', 'pandas>= 0.25', 'statsmodels == 0.11.0'],
+    'install_requires': ['numpy >= 1.10.0', 'pandas>= 1.0.0', 'statsmodels == 0.11.0'],
     'packages': ['CausalImpact'],
     'test_suite': 'nose.collector',
     'tests_require': ['nose>=0.10.1'],

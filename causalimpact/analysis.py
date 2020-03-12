@@ -276,7 +276,7 @@ class CausalImpact(object):
         # Zoom in on data in modeling range
         if data.shape[1] == 1:  # no exogenous values provided
             raise ValueError("data contains no exogenous variables")
-        non_null = pd.isnull(data.iloc[:, 1]).nonzero()
+        non_null = pd.isnull(data.iloc[:, 1]).to_numpy().nonzero()
         first_non_null = non_null[0]
         if first_non_null.size > 0:
             pre_period[0] = max(pre_period[0], data.index[first_non_null[0]])

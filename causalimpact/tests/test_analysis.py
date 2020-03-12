@@ -261,7 +261,7 @@ class TestRunWithData(object):
         pre_period = [3, 100]
         impact = CausalImpact(data, pre_period, post_period, model_args)
         impact.run()
-        assert np.testing.assert_array_equal(
+        np.testing.assert_array_equal(
             impact.inferences.response.values, data.y.values)
         assert np.all(pd.isnull(impact.inferences.iloc[0:pre_period[0], 2:]))
 
@@ -270,7 +270,7 @@ class TestRunWithData(object):
         post_period = [101, 197]
         impact = CausalImpact(data, pre_period, post_period, model_args)
         impact.run()
-        assert np.testing.assert_array_equal(
+        np.testing.assert_array_equal(
             impact.inferences.response.values, data.y.values)
         assert np.all(pd.isnull(impact.inferences.iloc[-2:, 2:]))
 

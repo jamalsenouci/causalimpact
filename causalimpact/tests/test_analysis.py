@@ -112,6 +112,13 @@ class TestFormatInput(object):
         with pytest.raises(Exception):
             format_input(impact_data, text_data,
                       [0, 3], [3, 3], model_args, None, None, alpha)
+    def test_null_covariates(self):
+        # Test nulls in <data>
+        bad_data = impact_data.params["data"].copy()
+        bad_data.iloc[10:20, 1:] = np.nan
+        with pytest.raises(Exception):
+            format_input(impact_data, bad_data,
+                      [0, 3], [3, 3], model_args, None, None, alpha)
 
     def test_bad_pre_period(self):
         # Test bad <pre_period>

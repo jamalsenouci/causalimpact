@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from pandas.util.testing import is_list_like
+from pandas.api.types import is_list_like
 
 from causalimpact.misc import standardize_all_variables
 from causalimpact.model import construct_model, model_fit

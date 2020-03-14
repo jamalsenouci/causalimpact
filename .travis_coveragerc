@@ -2,3 +2,10 @@
 branch = True
 include =
     */causalimpact/*
+omit = causalimpact/tests/*
+
+
+[report]
+exclude_lines =
+    raise NotImplementedError
+    pass

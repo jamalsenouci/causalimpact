@@ -354,6 +354,7 @@ class CausalImpact(object):
 
     def summary(self, output="summary", width=120):
         import textwrap
+        import scipy.stats as st
 
         alpha = self.params["alpha"]
         confidence = "{}%".format(int((1 - alpha) * 100))
@@ -419,6 +420,15 @@ class CausalImpact(object):
         cum_rel_effect_ci = [cum_rel_effect_lower, cum_rel_effect_upper]
         cum_rel_effect_ci_fmt = [cum_rel_effect_lower_fmt,
                                  cum_rel_effect_upper_fmt]
+        
+        #assuming approximately normal distribution
+        #calculate standard deviation from the 95% conf interval
+        std_pred = (mean_upper - mean_pred) / 1.96
+        #calculate z score
+        z_score = (0 - mean_pred) / std_pred
+        #convert to probability
+        p_value = st.norm.cdf(z_score)
+        prob_causal = (1 - p_value)
 
         if output == "summary":
             # Posterior inference {CausalImpact}
@@ -431,7 +441,10 @@ class CausalImpact(object):
                 [abs_effect_ci_fmt, cum_abs_effect_ci_fmt],
                 [" ", " "],
                 [rel_effect_fmt, cum_rel_effect_fmt],
-                [rel_effect_ci_fmt, cum_rel_effect_ci_fmt]
+                [rel_effect_ci_fmt, cum_rel_effect_ci_fmt],
+                [" ", " "],
+                ["{:.1f}%".format(p_value), " "],
+                ["{:.1f}%".format(prob_causal), " "]
             ]
             summary = pd.DataFrame(summary, columns=["Average", "Cumulative"],
                                    index=["Actual",
@@ -442,7 +455,11 @@ class CausalImpact(object):
                                           "95% CI",
                                           " ",
                                           "Relative Effect",
-                                          "95% CI"])
+                                          "95% CI",
+                                          " ",
+                                          "p-value",
+                                          "prob. of a causal effect"
+                                          ])
             print(summary)
         elif output == "report":
             sig = (not ((cum_rel_effect_lower < 0) and

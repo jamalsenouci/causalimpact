@@ -1,43 +1,105 @@
 """Tests for misc module."""
 
-import causalimpact
+
+import mock
 import numpy as np
 import pandas as pd
+from pandas.util.testing import assert_frame_equal, assert_almost_equal
+import pytest
 
-from nose.tools import assert_equal
-from nose.tools import assert_raises
-from pandas.util.testing import assert_frame_equal
+import causalimpact
+
+
 standardize = causalimpact.misc.standardize_all_variables
 unstandardize = causalimpact.misc.unstandardize
+df_print = causalimpact.misc.df_print
+
+def test_basic_standardize():
+    pre_period = [0, 2]
+    post_period = [3, 4]
+
+    data = {
+        'c1': [1, 4, 8, 9, 10],
+        'c2': [4, 8, 12, 16, 20]
+    }
+    data = pd.DataFrame(data)
+
+    result = standardize(data, pre_period, post_period)
+    assert_almost_equal(
+        np.zeros((2)),
+        np.mean(result['data_pre'].values, axis=0)
+    )
+
+    assert_almost_equal(
+        np.ones((2)),
+        np.std(result['data_pre'].values, axis=0)
+    )
+    assert len(result['data_pre']) == pre_period[-1] + 1
 
 
-class test_standardize(object):
-    """Tests for standardize function."""
-    assert_raises(TypeError, standardize)
+def test_standardize_returns_expected_types():
+    pre_period = [0, 4]
+    post_period = [5, 5]
 
-    def test_standardize_basic(self):
-        """test types produced."""
-        data = [-1, 0.1, 1, 2, np.nan, 3]
-        data = pd.DataFrame(data)
-        result = standardize(data)
-        assert_equal(type(result), dict)
-        assert_equal(set(result.keys()), set(["data", "orig_std_params"]))
-        assert_frame_equal(unstandardize(**result), pd.DataFrame(data))
+    data = [-1, 0.1, 1, 2, np.nan, 3]
+    data = pd.DataFrame(data)
 
-    def test_standardize_maths(self):
-        """test numeric output."""
-        data = [1, 2, 3]
-        data = pd.DataFrame(data)
-        np.testing.assert_array_equal(standardize(data)["data"], pd.DataFrame([-1, 0, 1]))
+    result = standardize(data, pre_period, post_period)
 
-    def test_standardize_inputs(self):
-        """test various input types."""
-        test_data = [[1], [1, 1, 1], [1, np.nan, 3], pd.DataFrame([10, 20, 30])]
-        test_data = [pd.DataFrame(data, dtype="float") for data in test_data]
-        for data in test_data:
-            result = standardize(data)
-            pd.util.testing.assert_frame_equal(unstandardize(**result), data)
+    assert isinstance(result, dict)
+    assert set(result.keys()) == set(["data_pre", "data_post",
+                                      "orig_std_params"])
 
-    def test_standardize_bad_input(self):
-        """test TypeError with text input."""
-        assert_raises(AttributeError, standardize,"text")
+    assert len(result['data_pre']) == pre_period[-1] + 1
+    assert_frame_equal(
+        unstandardize(result['data_pre'], result['orig_std_params']),
+        pd.DataFrame(data[:5])
+    )
+
+
+def test_standardize_w_distinct_inputs():
+    test_data = [
+        [1],
+        [1, 1, 1],
+        [1, np.nan, 3],
+        pd.DataFrame([10, 20, 30])
+    ]
+
+    test_data = [pd.DataFrame(data, dtype="float") for data in test_data]
+
+    for data in test_data:
+        result = standardize(
+            data,
+            pre_period=[0, len(data) + 1],
+            post_period=[len(data) + 1, len(data) + 1]
+        )
+
+        pd.util.testing.assert_frame_equal(
+            unstandardize(result['data_pre'], result['orig_std_params']),
+            data
+        )
+
+
+def test_standardize_raises_w_bad_input():
+    with pytest.raises(ValueError):
+        standardize("text", 1, 2)
+
+    with pytest.raises(ValueError):
+        standardize(pd.DataFrame([1, 2]), 1, 2)
+
+
+def test_unstandardize():
+    data = np.array([-1.16247639, -0.11624764, 1.27872403])
+    orig_std_params = (4.3333333, 2.8674417556)
+    original_data = unstandardize(data, orig_std_params)
+
+    assert_almost_equal(original_data.values, np.array([[1., 4., 8.]]).T)
+
+
+def test_df_print():
+    data_mock = mock.Mock()
+    df_print(data_mock)
+    data_mock.assert_not_called()
+
+    df_print(data_mock, path='path')
+    data_mock.to_csv.assert_called_once_with('path')

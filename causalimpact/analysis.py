@@ -2,10 +2,13 @@ import numpy as np
 import pandas as pd
 from pandas.api.types import is_list_like
 
-from causalimpact.misc import standardize_all_variables
+from causalimpact.misc import (
+    standardize_all_variables,
+    df_print,
+    get_matplotlib
+)
 from causalimpact.model import construct_model, model_fit
 from causalimpact.inferences import compile_posterior_inferences
-# from causalimpact.inferences import compile_na_inferences
 
 
 class CausalImpact(object):
@@ -147,9 +150,6 @@ class CausalImpact(object):
         if pre_period[0] < data.index.min():
             pre_period[0] = data.index.min()
 
-        if pre_period[1] > data.index.max():
-            pre_period[1] = data.index.max()
-
         if post_period[1] > data.index.max():
             post_period[1] = data.index.max()
 
@@ -239,10 +239,10 @@ class CausalImpact(object):
                 raise ValueError("post_period_response must be list-like")
             if np.array(post_period_response).dtype.num == 17:
                 raise ValueError("post_period_response should not be" +
-                                 "datetime values")
+                                 " datetime values")
             if not np.all(np.isreal(post_period_response)):
                 raise ValueError("post_period_response must contain all" +
-                                 "real values")
+                                 " real values")
 
         # Check <alpha>
         if alpha is None:
@@ -266,11 +266,8 @@ class CausalImpact(object):
         # Zoom in on data in modeling range
         if data.shape[1] == 1:  # no exogenous values provided
             raise ValueError("data contains no exogenous variables")
-        non_null = pd.isnull(data.iloc[:, 1]).to_numpy().nonzero()
-        first_non_null = non_null[0]
-        if first_non_null.size > 0:
-            pre_period[0] = max(pre_period[0], data.index[first_non_null[0]])
         data_modeling = data.copy()
+
         df_pre = data_modeling.loc[pre_period[0]:pre_period[1], :]
         df_post = data_modeling.loc[post_period[0]:post_period[1], :]
 
@@ -284,16 +281,18 @@ class CausalImpact(object):
             orig_std_params = sd_results["orig_std_params"]
 
         # Construct model and perform inference
-        ucm_model = construct_model(self, df_pre, model_args)
-        res = model_fit(self, ucm_model, estimation, model_args["niter"])
+        model = construct_model(df_pre, model_args)
+        self.model = model
 
-        inferences = compile_posterior_inferences(res, data, df_pre, df_post, None,
-                                                  alpha, orig_std_params,
-                                                  estimation)
+        trained_model = model_fit(model, estimation, model_args["niter"])
+        self.model = trained_model
+
+        inferences = compile_posterior_inferences(trained_model, data, df_pre,
+                                                  df_post, None, alpha,
+                                                  orig_std_params, estimation)
 
         # "append" to 'CausalImpact' object
         self.inferences = inferences["series"]
-        self.model = ucm_model
 
     def _run_with_ucm(self, ucm_model, post_period_response, alpha, model_args,
                       estimation):
@@ -328,7 +327,7 @@ class CausalImpact(object):
 
         orig_std_params = (0, 1)
 
-        fitted_model = model_fit(self, ucm_model, estimation,
+        fitted_model = model_fit(ucm_model, estimation,
             model_args["niter"])
 
         # Compile posterior inferences
@@ -350,9 +349,9 @@ class CausalImpact(object):
         self.params["post_period"] = [obs_inter, -1]
         self.data = pd.concat([df_pre, post_period_response])
         self.inferences = inferences["series"]
-        self.model = ucm_model
+        self.model = fitted_model
 
-    def summary(self, output="summary", width=120):
+    def summary(self, output="summary", width=120, path=None):
         import textwrap
         import scipy.stats as st
 
@@ -455,12 +454,8 @@ class CausalImpact(object):
                                           "95% CI",
                                           " ",
                                           "Relative Effect",
-                                          "95% CI",
-                                          " ",
-                                          "p-value",
-                                          "prob. of a causal effect"
-                                          ])
-            print(summary)
+                                          "95% CI"])
+            df_print(summary, path)
         elif output == "report":
             sig = (not ((cum_rel_effect_lower < 0) and
                         (cum_rel_effect_upper > 0)))
@@ -621,7 +616,7 @@ class CausalImpact(object):
                              "or 'report'")
 
     def plot(self, panels=["original", "pointwise", "cumulative"]):
-        import matplotlib.pyplot as plt
+        plt = get_matplotlib()
         plt.figure(figsize=(15, 12))
 
         data_inter = self.params["pre_period"][1]

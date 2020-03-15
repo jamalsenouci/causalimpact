@@ -9,3 +9,4 @@ omit = causalimpact/tests/*
 exclude_lines =
     raise NotImplementedError
     pass
+    pragma: no cover

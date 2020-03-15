@@ -33,11 +33,11 @@ before_install:
   - conda info -a
   - conda config --add channels conda-forge
 install:
-  - DEPS="numpy scipy pip nose pytest pandas statsmodels"
+  - DEPS="numpy scipy pip nose pytest matplotlib mock pandas statsmodels"
   - conda create -q -n test-environment python=$PYTHON $DEPS
   - source activate test-environment
   - if [ ${COVERAGE} = true ]; then export COVERAGE_OPTS=" --cov-config=.travis_coveragerc --cov=causalimpact "; else export COVERAGE_OPTS=""; fi
-  - if [ ${COVERAGE} = true ]; then pip install codecov coverage coveralls pytest-cov; fi
+  - if [ ${COVERAGE} = true ]; then pip install codecov coverage coveralls pytest-cov mock; fi
   - python setup.py install
 script:
   - pytest ${COVERAGE_OPTS} causalimpact

@@ -4,7 +4,7 @@
 import pytest
 import numpy as np
 import pandas as pd
-from pandas.util.testing import assert_series_equal
+from pandas.testing import assert_series_equal
 from statsmodels.tsa.statespace.structural import UnobservedComponents
 from statsmodels.tsa.arima_process import ArmaProcess
 
@@ -85,16 +85,16 @@ def test_compile_posterior_inferences_w_data(data):
         inferences['series']['point_pred']
     )
 
-    pre_ci = predictor.conf_int(alpha=alpha)
+    pre_ci = pd.DataFrame(predictor.conf_int(alpha=alpha))
     pre_ci.index = df_pre.index
-    post_ci = forecaster.conf_int(alpha=alpha)
+    post_ci = pd.DataFrame(forecaster.conf_int(alpha=alpha))
     post_ci.index = df_post.index
 
     ci = pd.concat([pre_ci, post_ci])
 
-    expected_pred_upper = ci['upper y']
+    expected_pred_upper = ci.iloc[:, 1]
     expected_pred_upper = expected_pred_upper.rename('point_pred_upper')
-    expected_pred_lower = ci['lower y']
+    expected_pred_lower = ci.iloc[:, 0]
     expected_pred_lower = expected_pred_lower.rename('point_pred_lower')
 
     assert_series_equal(
@@ -258,18 +258,18 @@ def test_compile_posterior_inferences_w_post_period_response(data):
         inferences['series']['point_pred']
     )
 
-    pre_ci = predictor.conf_int(alpha=alpha)
+    pre_ci = pd.DataFrame(predictor.conf_int(alpha=alpha))
     pre_ci.index = df_pre.index
-    post_ci = forecaster.conf_int(alpha=alpha)
+    post_ci = pd.DataFrame(forecaster.conf_int(alpha=alpha))
     post_ci.index = df_post.index
 
     ci = pd.concat([pre_ci, post_ci])
 
-    expected_pred_upper = ci['upper y']
+    expected_pred_upper = ci.iloc[:, 1]
     expected_pred_upper = expected_pred_upper.rename('point_pred_upper')
     expected_pred_upper.index = data.index
 
-    expected_pred_lower = ci['lower y']
+    expected_pred_lower = ci.iloc[:, 0]
     expected_pred_lower = expected_pred_lower.rename('point_pred_lower')
     expected_pred_lower.index = data.index
 

@@ -4,7 +4,8 @@
 import mock
 import numpy as np
 import pandas as pd
-from pandas.util.testing import assert_frame_equal, assert_almost_equal
+from pandas.testing import assert_frame_equal
+from numpy.testing import assert_almost_equal
 import pytest
 
 import causalimpact

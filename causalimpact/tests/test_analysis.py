@@ -9,7 +9,7 @@ import pytest
 import numpy as np
 from numpy.testing import assert_array_equal
 import pandas as pd
-from pandas.util.testing import assert_frame_equal
+from pandas.testing import assert_frame_equal
 from numpy.testing import assert_array_equal
 from statsmodels.tsa.statespace.structural import UnobservedComponents as UCM
 from causalimpact import CausalImpact
@@ -125,8 +125,8 @@ def expected_columns():
         "response",
         "cum_response",
         "point_pred",
-        "point_pred_upper",
         "point_pred_lower",
+        "point_pred_upper",
         "cum_pred",
         "cum_pred_lower",
         "cum_pred_upper",
@@ -966,7 +966,10 @@ class TestSummary(object):
             [[0, 0], [0, 0]],
             [' ', ' '],
             ['-2.8%', '-2.8%'],
-            [['0.0%', '-11.1%'], ['0.0%', '-11.1%']]
+            [['0.0%', '-11.1%'], ['0.0%', '-11.1%']],
+            [' ', ' '],
+            ['0.0%', ' '],
+            ['100.0%', ' '],
         ]
 
         expected = pd.DataFrame(
@@ -981,7 +984,10 @@ class TestSummary(object):
                 '95% CI',
                 ' ',
                 'Relative Effect',
-                '95% CI'
+                '95% CI',
+                " ",
+                "P-value",
+                "Prob. of Causal Effect"
             ]
         )
 

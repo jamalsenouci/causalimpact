@@ -427,7 +427,7 @@ class CausalImpact(object):
         z_score = (0 - mean_pred) / std_pred
         #convert to probability
         p_value = st.norm.cdf(z_score)
-        prob_causal = (1 - p_value)
+        prob_causal = (100 - p_value)
 
         if output == "summary":
             # Posterior inference {CausalImpact}
@@ -454,7 +454,10 @@ class CausalImpact(object):
                                           "95% CI",
                                           " ",
                                           "Relative Effect",
-                                          "95% CI"])
+                                          "95% CI",
+                                          " ",
+                                          "P-value",
+                                          "Prob. of Causal Effect"])
             df_print(summary, path)
         elif output == "report":
             sig = (not ((cum_rel_effect_lower < 0) and

@@ -134,13 +134,9 @@ class CausalImpact(object):
                              " after the end of the pre_period")
 
         if isinstance(data.index, pd.RangeIndex):
-            loc1 = pre_period[0]
-            loc2 = pre_period[1]
             loc3 = post_period[0]
             loc4 = post_period[1]
         else:
-            loc1 = data.index.get_loc(pre_period[0])
-            loc2 = data.index.get_loc(pre_period[1])
             loc3 = data.index.get_loc(post_period[0])
             loc4 = data.index.get_loc(post_period[1])
 
@@ -343,7 +339,7 @@ class CausalImpact(object):
             estimation
         )
 
-        obs_inter = pre_len = fitted_model.model.nobs - len(
+        obs_inter = fitted_model.model.nobs - len(
             post_period_response)
 
         self.params["pre_period"] = [0, obs_inter - 1]
@@ -377,13 +373,11 @@ class CausalImpact(object):
         mean_lower_fmt = int(mean_lower)
         mean_upper = post_point_upper.mean()
         mean_upper_fmt = int(mean_upper)
-        mean_ci = [mean_lower, mean_upper]
         mean_ci_fmt = [mean_lower_fmt, mean_upper_fmt]
         cum_lower = post_point_lower.sum()
         cum_lower_fmt = int(cum_lower)
         cum_upper = post_point_upper.sum()
         cum_upper_fmt = int(cum_upper)
-        cum_ci = [cum_lower, cum_upper]
         cum_ci_fmt = [cum_lower_fmt, cum_upper_fmt]
 
         abs_effect = (post_point_resp - post_point_pred).mean()
@@ -394,41 +388,40 @@ class CausalImpact(object):
         abs_effect_lower_fmt = int(abs_effect_lower)
         abs_effect_upper = (post_point_resp - post_point_upper).mean()
         abs_effect_upper_fmt = int(abs_effect_upper)
-        abs_effect_ci = [abs_effect_lower, abs_effect_upper]
         abs_effect_ci_fmt = [abs_effect_lower_fmt, abs_effect_upper_fmt]
         cum_abs_lower = (post_point_resp - post_point_lower).sum()
         cum_abs_lower_fmt = int(cum_abs_lower)
         cum_abs_upper = (post_point_resp - post_point_upper).sum()
         cum_abs_upper_fmt = int(cum_abs_upper)
-        cum_abs_effect_ci = [cum_abs_lower, cum_abs_upper]
         cum_abs_effect_ci_fmt = [cum_abs_lower_fmt, cum_abs_upper_fmt]
 
         rel_effect = abs_effect / mean_pred * 100
-        rel_effect_fmt = "{:.1f}%".format(abs_effect / mean_pred * 100)
+        rel_effect_fmt = "{:.1f}%".format(rel_effect)
         cum_rel_effect = cum_abs_effect / cum_pred * 100
-        cum_rel_effect_fmt = "{:.1f}%".format(cum_abs_effect / cum_pred * 100)
+        cum_rel_effect_fmt = "{:.1f}%".format(cum_rel_effect)
         rel_effect_lower = abs_effect_lower / mean_pred * 100
-        rel_effect_lower_fmt = "{:.1f}%".format(abs_effect_lower / mean_pred * 100)
+        rel_effect_lower_fmt = "{:.1f}%".format(rel_effect_lower)
         rel_effect_upper = abs_effect_upper / mean_pred * 100
-        rel_effect_upper_fmt = "{:.1f}%".format(abs_effect_upper / mean_pred * 100)
-        rel_effect_ci = [rel_effect_lower, rel_effect_upper]
+        rel_effect_upper_fmt = "{:.1f}%".format(rel_effect_upper)
         rel_effect_ci_fmt = [rel_effect_lower_fmt, rel_effect_upper_fmt]
         cum_rel_effect_lower = cum_abs_lower / cum_pred * 100
         cum_rel_effect_lower_fmt = "{:.1f}%".format(cum_rel_effect_lower)
         cum_rel_effect_upper = cum_abs_upper / cum_pred * 100
         cum_rel_effect_upper_fmt = "{:.1f}%".format(cum_rel_effect_upper)
-        cum_rel_effect_ci = [cum_rel_effect_lower, cum_rel_effect_upper]
         cum_rel_effect_ci_fmt = [cum_rel_effect_lower_fmt,
                                  cum_rel_effect_upper_fmt]
         
         #assuming approximately normal distribution
         #calculate standard deviation from the 95% conf interval
-        std_pred = (mean_upper - mean_pred) / 1.96
+        std_pred = (mean_upper - mean_pred) / 1.96 # from mean_upper = mean_pred + 1.96 * std
         #calculate z score
         z_score = (0 - mean_pred) / std_pred
-        #convert to probability
+        #pvalue from zscore
         p_value = st.norm.cdf(z_score)
-        prob_causal = (100 - p_value)
+        prob_causal = (1 - p_value)
+        p_value_perc = p_value  * 100
+        prob_causal_perc = prob_causal * 100
+        
 
         if output == "summary":
             # Posterior inference {CausalImpact}
@@ -443,8 +436,8 @@ class CausalImpact(object):
                 [rel_effect_fmt, cum_rel_effect_fmt],
                 [rel_effect_ci_fmt, cum_rel_effect_ci_fmt],
                 [" ", " "],
-                ["{:.1f}%".format(p_value), " "],
-                ["{:.1f}%".format(prob_causal), " "]
+                ["{:.1f}%".format(p_value_perc), " "],
+                ["{:.1f}%".format(prob_causal_perc), " "]
             ]
             summary = pd.DataFrame(summary, columns=["Average", "Cumulative"],
                                    index=["Actual",

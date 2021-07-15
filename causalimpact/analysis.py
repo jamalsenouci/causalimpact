@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from pandas._libs.tslibs.timestamps import Timestamp
 from pandas.api.types import is_list_like
 
 from causalimpact.misc import (
@@ -623,7 +624,11 @@ class CausalImpact(object):
         plt.figure(figsize=(15, 12))
 
         data_inter = self.params["pre_period"][1]
+        if isinstance(data_inter, pd.DatetimeIndex):
+            data_inter = pd.Timestamp(data_inter)
+
         inferences = self.inferences.iloc[1:, :]
+
         # Observation and regression components
         if "original" in panels:
             ax1 = plt.subplot(3, 1, 1)

@@ -78,7 +78,7 @@ class CausalImpact(object):
 
         # Must not have NA in covariates (if any)
         if len(data.columns) >= 2:
-            if np.any(pd.isnull(data.iloc[:, 1:])):
+            if pd.isnull(data.iloc[:, 1:]).any(axis=None):
                 raise ValueError("covariates must not contain null values")
 
         return data
@@ -98,7 +98,7 @@ class CausalImpact(object):
         if len(pre_period) != 2 or len(post_period) != 2:
             raise ValueError("pre_period and post_period must both be of " +
                              "length 2")
-        if np.any(pd.isnull(pre_period)) or np.any(pd.isnull(post_period)):
+        if pd.isnull(pre_period).any(axis=None) or pd.isnull(post_period).any(axis=None):
             raise ValueError("pre_period and post period must not contain " +
                              "null values")
 

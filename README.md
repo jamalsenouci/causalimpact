@@ -2,8 +2,6 @@ CausalImpact
 -------
 ![build status](https://travis-ci.org/jamalsenouci/causalimpact.svg?branch=master)
 
-Disclaimer: CURRENTLY WIP
-
 #### TO DO
 * Estimation is MLE not Bayesian
 * More unit tests

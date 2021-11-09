@@ -612,9 +612,10 @@ class CausalImpact(object):
             raise ValueError("Output argument must be either 'summary' " +
                              "or 'report'")
 
-    def plot(self, panels=["original", "pointwise", "cumulative"]):
+    def plot(self, panels=["original", "pointwise", "cumulative"],
+             figsize=(15, 12), fname=None):
         plt = get_matplotlib()
-        plt.figure(figsize=(15, 12))
+        fig = plt.figure(figsize=figsize)
 
         data_inter = self.params["pre_period"][1]
         if isinstance(data_inter, pd.DatetimeIndex):
@@ -694,4 +695,8 @@ class CausalImpact(object):
 
             plt.title('Cumulative Impact')
         plt.xlabel('$T$')
-        plt.show()
+        if fname is None:
+            plt.show()
+        else:
+            fig.savefig(fname, bbox_inches='tight')
+            plt.close(fig)

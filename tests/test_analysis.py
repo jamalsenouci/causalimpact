@@ -239,6 +239,7 @@ class TestFormatInput:
         ]
 
         for idx, bad_post_period in enumerate(bad_post_periods):
+            print(idx)
             with pytest.raises(ValueError) as excinfo:
                 causal_impact._format_input(
                     data, [1, 2], bad_post_period, None, None, None, 0.05

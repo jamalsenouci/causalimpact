@@ -128,8 +128,9 @@ class CausalImpact(object):
             pre_period = [pd.to_datetime(date) for date in pre_period]
             post_period = [pd.to_datetime(date) for date in post_period]
             pd.core.dtypes.common.is_datetime_or_timedelta_dtype(pre_period)
+            print(pre_period)
         # if index is not datetime then error if datetime pre and post is passed
-        elif pd.core.dtypes.common.is_datetime_or_timedelta_dtype(pre_period) or pd.core.dtypes.common.is_datetime_or_timedelta_dtype(post_period):
+        elif pd.core.dtypes.common.is_datetime_or_timedelta_dtype(pd.Series(pre_period)) or pd.core.dtypes.common.is_datetime_or_timedelta_dtype(pd.Series(post_period)):
             raise ValueError(
                 "pre_period ("
                 + pre_dtype.name
@@ -140,10 +141,6 @@ class CausalImpact(object):
                 + data.index.dtype.name
                 + ")"
             )
-        # if index is string
-        elif (pd.api.types.is_string_dtype(data.index)):
-            pre_period = [str(idx) for idx in pre_period]
-            post_period = [str(idx) for idx in post_period]
         # if index is int
         elif pd.api.types.is_int64_dtype(data.index):
                 pre_period = [int(elem) for elem in pre_period]
@@ -152,6 +149,23 @@ class CausalImpact(object):
         elif pd.api.types.is_float_dtype(data.index):
             pre_period = [float(elem) for elem in pre_period]
             post_period = [float(elem) for elem in post_period]
+        # if index is string
+        elif (pd.api.types.is_string_dtype(data.index)):
+            if pd.api.types.is_numeric_dtype(np.array(pre_period)) or pd.api.types.is_numeric_dtype(np.array(post_period)):
+                 raise ValueError(
+                "pre_period ("
+                + pre_dtype.name
+                + ") and post_period ("
+                + post_dtype.name
+                + ") should have the same class as the "
+                + "time points in the data ("
+                + data.index.dtype.name
+                + ")"
+                 )
+            else:
+                pre_period = [str(idx) for idx in pre_period]
+                post_period = [str(idx) for idx in post_period]
+                print(pre_period)
         else:
             raise ValueError(
                 "pre_period ("
@@ -199,10 +213,8 @@ class CausalImpact(object):
 
         if pre_period[0] < data.index.min():
             pre_period[0] = data.index.min()
-
         if post_period[1] > data.index.max():
             post_period[1] = data.index.max()
-
         return {"pre_period": pre_period, "post_period": post_period}
 
     def _check_valid_args_combo(self, args):
@@ -269,6 +281,8 @@ class CausalImpact(object):
             checked = self._format_input_prepost(pre_period, post_period, data)
             pre_period = checked["pre_period"]
             post_period = checked["post_period"]
+            self.params["pre_period"] = pre_period
+            self.params["post_period"] = post_period
 
         # Parse <model_args>, fill gaps using <_defaults>
 

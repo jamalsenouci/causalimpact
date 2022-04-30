@@ -1,7 +1,7 @@
 CausalImpact
 -------
 ![build status](https://travis-ci.org/jamalsenouci/causalimpact.svg?branch=master)
-![coverage](https://img.shields.io/coveralls/github/<USER>/causalimpact/main.svg)
+[![Coverage Status](https://coveralls.io/repos/github/jamalsenouci/causalimpact/badge.svg)](https://coveralls.io/github/jamalsenouci/causalimpact)
 ![monthly downloads](https://pepy.tech/badge/causalimpact/month)
 
 #### TO DO

@@ -18,25 +18,25 @@ def run(verbosity=1, doctest=False, numpy=True):
     try:
         import nose
     except ImportError:
-        raise ImportError(
-            "The nose package is needed to run the causalimpact tests.")
+        raise ImportError("The nose package is needed to run the causalimpact tests.")
 
     sys.stderr.write("Running causalimpact tests:")
     ci_install_dir = path.join(path.dirname(__file__), path.pardir)
     # stop if running from source directory
     if getcwd() == path.abspath(path.join(ci_install_dir, path.pardir)):
-        raise RuntimeError("Can't run tests from source directory.\n"
-                           "Run 'nosetests' from the command line.")
+        raise RuntimeError(
+            "Can't run tests from source directory.\n"
+            "Run 'nosetests' from the command line."
+        )
 
-    argv = [' ', '--verbosity = %d' % verbosity,
-            '-w', ci_install_dir,
-            '-exe']
+    argv = [" ", "--verbosity = %d" % verbosity, "-w", ci_install_dir, "-exe"]
     if doctest:
-        argv.extend(['--with-doctest', '--doctest-extension=txt'])
+        argv.extend(["--with-doctest", "--doctest-extension=txt"])
     if not numpy:
-        argv.extend(['-A not numpy'])
+        argv.extend(["-A not numpy"])
 
     nose.run(argv=argv)
+
 
 if __name__ == "__main__":
     run()

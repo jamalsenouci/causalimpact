@@ -1,8 +1,7 @@
 [run]
 branch = True
 include =
-    */causalimpact/*
-omit = causalimpact/tests/*
+    src/causalimpact/
 
 
 [report]

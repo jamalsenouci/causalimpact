@@ -17,21 +17,20 @@ model_fit = causalimpact.model.model_fit
 def test_raises_when_y_is_None():
     with pytest.raises(ValueError) as excinfo:
         observations_validate(None)
-    assert str(excinfo.value) == 'y cannot be None'
+    assert str(excinfo.value) == "y cannot be None"
 
 
 def test_raises_when_y_has_len_1():
     with pytest.raises(ValueError) as excinfo:
         observations_validate([1])
-    assert str(excinfo.value) == 'y must have len > 1'
+    assert str(excinfo.value) == "y must have len > 1"
 
 
 def test_raises_when_y_is_all_nan():
     with pytest.raises(ValueError) as excinfo:
         observations_validate([np.nan, np.nan])
     assert str(excinfo.value) == (
-        'Aborting inference due to input series '
-        'being all null.'
+        "Aborting inference due to input series " "being all null."
     )
 
 
@@ -39,8 +38,7 @@ def test_raises_when_y_have_just_2_values():
     with pytest.raises(ValueError) as excinfo:
         observations_validate(pd.DataFrame([1, 2]))
     assert str(excinfo.value) == (
-        'Aborting inference due to fewer than 3 '
-        'nonnull values in input.'
+        "Aborting inference due to fewer than 3 " "nonnull values in input."
     )
 
 
@@ -48,8 +46,7 @@ def test_raises_when_y_is_constant():
     with pytest.raises(ValueError) as excinfo:
         observations_validate(pd.Series([1, 1, 1, 1, 1]))
     assert str(excinfo.value) == (
-        'Aborting inference due to input series '
-        'being constant'
+        "Aborting inference due to input series " "being constant"
     )
 
 
@@ -61,8 +58,7 @@ def test_model_constructor():
     assert model.k_exog == data.shape[1] - 1
     assert model.level
     assert_array_equal(
-        model.exog,
-        data.iloc[:, 1].values.reshape(-1, data.shape[1] -1)
+        model.exog, data.iloc[:, 1].values.reshape(-1, data.shape[1] - 1)
     )
 
 
@@ -79,5 +75,5 @@ def test_model_constructor_w_just_endog():
 def test_model_fit():
     model_mock = mock.Mock()
 
-    _ = model_fit(model_mock, 'MLE', 50)
+    _ = model_fit(model_mock, "MLE", 50)
     model_mock.fit.assert_called_once_with(maxiter=50)

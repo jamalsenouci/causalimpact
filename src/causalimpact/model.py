@@ -18,23 +18,22 @@ def observations_ill_conditioned(y):
         True if something is wrong with the observations; False otherwise.
     """
 
-    if (y is None):
+    if y is None:
         raise ValueError("y cannot be None")
     if not (len(y) > 1):
         raise ValueError("y must have len > 1")
 
     # All NA?
     if np.all(pd.isnull(y)):
-        raise ValueError("Aborting inference due to input series being all "
-                         "null.")
+        raise ValueError("Aborting inference due to input series being all " "null.")
     elif len(y[pd.notnull(y)]) < 3:
         # Fewer than 3 non-NA values?
-        raise ValueError("Aborting inference due to fewer than 3 nonnull "
-                         "values in input.")
+        raise ValueError(
+            "Aborting inference due to fewer than 3 nonnull " "values in input."
+        )
     # Constant series?
     elif y.std(skipna=True) == 0:
-        raise ValueError("Aborting inference due to input series being "
-                         "constant")
+        raise ValueError("Aborting inference due to input series being " "constant")
     return False
 
 
@@ -56,7 +55,7 @@ def construct_model(data, model_args={}):
 
     observations_ill_conditioned(y)
 
-    #LocalLevel specification of statespace
+    # LocalLevel specification of statespace
     ss = {}
     ss["endog"] = y.values
     ss["level"] = "llevel"
@@ -79,6 +78,6 @@ def construct_model(data, model_args={}):
 def model_fit(model, estimation, niter):
     if estimation == "MLE":
         trained_model = model.fit(maxiter=niter)
-        return trained_model 
+        return trained_model
     else:
         raise NotImplementedError()

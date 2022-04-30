@@ -3,9 +3,16 @@ import pandas as pd
 from causalimpact.misc import unstandardize
 
 
-def compile_posterior_inferences(results, data, df_pre, df_post,
-                                 post_period_response, alpha,
-                                 orig_std_params, estimation='MLE'):
+def compile_posterior_inferences(
+    results,
+    data,
+    df_pre,
+    df_post,
+    post_period_response,
+    alpha,
+    orig_std_params,
+    estimation="MLE",
+):
     """Compiles posterior inferences to make predictions for post intervention
     period.
 
@@ -30,9 +37,7 @@ def compile_posterior_inferences(results, data, df_pre, df_post,
         if df_post is not None:
             predict = results.get_prediction()
             forecast = results.get_forecast(
-                steps=len(df_post),
-                exog=df_post.iloc[:, 1:],
-                alpha=alpha
+                steps=len(df_post), exog=df_post.iloc[:, 1:], alpha=alpha
             )
         else:
             pre_len = results.model.nobs - len(post_period_response)
@@ -42,9 +47,7 @@ def compile_posterior_inferences(results, data, df_pre, df_post,
 
             df_post = post_period_response
             df_post.index = pd.core.indexes.range.RangeIndex(
-                start=pre_len,
-                stop=pre_len + len(df_post),
-                step=1
+                start=pre_len, stop=pre_len + len(df_post), step=1
             )
 
         # Compile summary statistics (in original space)
@@ -59,13 +62,12 @@ def compile_posterior_inferences(results, data, df_pre, df_post,
         pre_ci = unstandardize(predict.conf_int(alpha=alpha), orig_std_params)
         pre_ci.index = df_pre.index
 
-        post_ci = unstandardize(forecast.conf_int(alpha=alpha),
-                                orig_std_params)
+        post_ci = unstandardize(forecast.conf_int(alpha=alpha), orig_std_params)
 
         post_ci.index = df_post.index
         ci = pd.concat([pre_ci, post_ci])
-        point_pred_lower = ci.iloc[:,0].to_frame()
-        point_pred_upper = ci.iloc[:,1].to_frame()
+        point_pred_lower = ci.iloc[:, 0].to_frame()
+        point_pred_upper = ci.iloc[:, 1].to_frame()
 
         response = data.iloc[:, 0]
         response_index = data.index
@@ -84,13 +86,12 @@ def compile_posterior_inferences(results, data, df_pre, df_post,
                 point_pred_upper,
                 cum_pred,
                 cum_pred_lower,
-                cum_pred_upper
+                cum_pred_upper,
             ],
-            axis=1
+            axis=1,
         )
 
-        data = pd.concat([response,
-                          cum_response], axis=1).join(data, lsuffix='l')
+        data = pd.concat([response, cum_response], axis=1).join(data, lsuffix="l")
 
         data.columns = [
             "response",
@@ -100,26 +101,23 @@ def compile_posterior_inferences(results, data, df_pre, df_post,
             "point_pred_upper",
             "cum_pred",
             "cum_pred_lower",
-            "cum_pred_upper"
+            "cum_pred_upper",
         ]
 
         point_effect = (data.response - data.point_pred).to_frame()
-        point_effect_lower = (data.response -
-                              data.point_pred_lower).to_frame()
-        point_effect_upper = (data.response -
-                              data.point_pred_upper).to_frame()
-
+        point_effect_lower = (data.response - data.point_pred_lower).to_frame()
+        point_effect_upper = (data.response - data.point_pred_upper).to_frame()
 
         cum_effect = point_effect.copy()
-        cum_effect.loc[df_pre.index[0]:df_pre.index[-1]] = 0
+        cum_effect.loc[df_pre.index[0] : df_pre.index[-1]] = 0
         cum_effect = np.cumsum(cum_effect)
 
         cum_effect_lower = point_effect_lower.copy()
-        cum_effect_lower.loc[df_pre.index[0]:df_pre.index[-1]] = 0
+        cum_effect_lower.loc[df_pre.index[0] : df_pre.index[-1]] = 0
         cum_effect_lower = np.cumsum(cum_effect_lower)
 
         cum_effect_upper = point_effect_upper.copy()
-        cum_effect_upper.loc[df_pre.index[0]:df_pre.index[-1]] = 0
+        cum_effect_upper.loc[df_pre.index[0] : df_pre.index[-1]] = 0
         cum_effect_upper = np.cumsum(cum_effect_upper)
 
         data = pd.concat(
@@ -130,9 +128,9 @@ def compile_posterior_inferences(results, data, df_pre, df_post,
                 point_effect_upper,
                 cum_effect,
                 cum_effect_lower,
-                cum_effect_upper
+                cum_effect_upper,
             ],
-            axis=1
+            axis=1,
         )
 
         # Create DataFrame of results
@@ -150,7 +148,7 @@ def compile_posterior_inferences(results, data, df_pre, df_post,
             "point_effect_upper",
             "cum_effect",
             "cum_effect_lower",
-            "cum_effect_upper"
+            "cum_effect_upper",
         ]
 
         data.index = response_index
@@ -167,4 +165,3 @@ def compile_posterior_inferences(results, data, df_pre, df_post,
         return inferences
     else:
         raise NotImplementedError()
-

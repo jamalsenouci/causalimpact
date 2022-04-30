@@ -1,5 +1,0 @@
-numpy>=1.10.0
-pandas>=1.0.0
-statsmodels==0.12.2
-nose
-matplotlib

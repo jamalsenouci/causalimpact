@@ -28,7 +28,7 @@ pip install git+ssh://github.com/jamalsenouci/causalimpact.git
 
 #### Getting started
 
-[Documentation and examples](https://mybinder.org/v2/gh/jamalsenouci/causalimpact/HEAD?filepath=GettingStarted.ipynb)
+[Documentation and examples](https://nbviewer.org/github/jamalsenouci/causalimpact/blob/master/GettingStarted.ipynb)
 
 #### Further resources
 

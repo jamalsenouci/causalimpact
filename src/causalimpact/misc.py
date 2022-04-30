@@ -15,8 +15,8 @@ def standardize_all_variables(data, pre_period, post_period):
     if not isinstance(data, pd.DataFrame):
         raise ValueError("``data`` must be of type `pandas.DataFrame`")
 
-    if not (isinstance(pre_period, list) and isinstance(post_period, list)):
-        raise ValueError("``pre_period`` and ``post_period``must be lists")
+    if not (pd.api.types.is_list_like(pre_period, list) and pd.api.types.is_list_like(post_period)):
+        raise ValueError("``pre_period`` and ``post_period``must be listlike")
 
     data_mu = data.loc[pre_period[0] : pre_period[1], :].mean(skipna=True)
     data_sd = data.loc[pre_period[0] : pre_period[1], :].std(skipna=True, ddof=0)

@@ -130,7 +130,11 @@ class CausalImpact(object):
             pd.core.dtypes.common.is_datetime_or_timedelta_dtype(pre_period)
             print(pre_period)
         # if index is not datetime then error if datetime pre and post is passed
-        elif pd.core.dtypes.common.is_datetime_or_timedelta_dtype(pd.Series(pre_period)) or pd.core.dtypes.common.is_datetime_or_timedelta_dtype(pd.Series(post_period)):
+        elif pd.core.dtypes.common.is_datetime_or_timedelta_dtype(
+            pd.Series(pre_period)
+        ) or pd.core.dtypes.common.is_datetime_or_timedelta_dtype(
+            pd.Series(post_period)
+        ):
             raise ValueError(
                 "pre_period ("
                 + pre_dtype.name
@@ -143,25 +147,27 @@ class CausalImpact(object):
             )
         # if index is int
         elif pd.api.types.is_int64_dtype(data.index):
-                pre_period = [int(elem) for elem in pre_period]
-                post_period = [int(elem) for elem in post_period]
+            pre_period = [int(elem) for elem in pre_period]
+            post_period = [int(elem) for elem in post_period]
         # if index is int
         elif pd.api.types.is_float_dtype(data.index):
             pre_period = [float(elem) for elem in pre_period]
             post_period = [float(elem) for elem in post_period]
         # if index is string
-        elif (pd.api.types.is_string_dtype(data.index)):
-            if pd.api.types.is_numeric_dtype(np.array(pre_period)) or pd.api.types.is_numeric_dtype(np.array(post_period)):
-                 raise ValueError(
-                "pre_period ("
-                + pre_dtype.name
-                + ") and post_period ("
-                + post_dtype.name
-                + ") should have the same class as the "
-                + "time points in the data ("
-                + data.index.dtype.name
-                + ")"
-                 )
+        elif pd.api.types.is_string_dtype(data.index):
+            if pd.api.types.is_numeric_dtype(
+                np.array(pre_period)
+            ) or pd.api.types.is_numeric_dtype(np.array(post_period)):
+                raise ValueError(
+                    "pre_period ("
+                    + pre_dtype.name
+                    + ") and post_period ("
+                    + post_dtype.name
+                    + ") should have the same class as the "
+                    + "time points in the data ("
+                    + data.index.dtype.name
+                    + ")"
+                )
             else:
                 pre_period = [str(idx) for idx in pre_period]
                 post_period = [str(idx) for idx in post_period]

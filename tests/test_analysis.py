@@ -4,14 +4,12 @@
 import os
 import re
 from tempfile import mkdtemp
-from unittest.mock import patch
 import unittest.mock as mock
 import pytest
 import numpy as np
 from numpy.testing import assert_array_equal
 import pandas as pd
 from pandas.testing import assert_frame_equal
-from causalimpact.inferences import compile_posterior_inferences
 from statsmodels.tsa.statespace.structural import UnobservedComponents as UCM
 from causalimpact import CausalImpact
 from unittest import TestCase
@@ -731,8 +729,10 @@ class TestRunWithData(object):
         ]
 
         assert np.all(np.isnan(impact.inferences.iloc[95:100, response_cols]))
-        assert (np.all(np.isnan(impact.inferences.iloc[95:100, effect_cols])))
-        TestCase().assertFalse(np.any(np.isnan(impact.inferences.iloc[95:100, predicted_cols])))
+        assert np.all(np.isnan(impact.inferences.iloc[95:100, effect_cols]))
+        TestCase().assertFalse(
+            np.any(np.isnan(impact.inferences.iloc[95:100, predicted_cols]))
+        )
         TestCase().assertFalse(np.any(np.isnan(impact.inferences.iloc[:95, :])))
         TestCase().assertFalse(np.any(np.isnan(impact.inferences.iloc[101:, :])))
 
@@ -856,58 +856,73 @@ class TestPlot(object):
 
         params = {"alpha": 0.05, "post_period": [2, 4], "pre_period": [0, 1]}
         inferences_mock = mock.MagicMock()
-        class EnhancedDict():
+
+        class EnhancedDict:
             @property
             def index(self):
                 return [0, 1]
+
             @property
             def response(self):
                 return "y obs"
+
             @property
             def point_pred(self):
                 return "points predicted"
+
             @property
             def point_pred_lower(self):
                 return "lower predictions"
+
             @property
             def point_pred_upper(self):
                 return "upper predictions"
+
             @property
             def point_effect(self):
                 return "lift"
+
             @property
             def point_effect_lower(self):
                 return "point effect lower"
+
             @property
             def point_effect_upper(self):
                 return "point effect upper"
+
             @property
             def cum_effect(self):
                 return "cum effect"
+
             @property
             def cum_effect_lower(self):
                 return "cum effect lower"
+
             @property
             def cum_effect_upper(self):
                 return "cum effect upper"
+
         def getitem(name):
             print(name)
             return EnhancedDict()
+
         inferences_mock.iloc.__getitem__.side_effect = getitem
+
         class Data(object):
             @property
             def index(self):
-                return 'index'
+                return "index"
 
             @property
             def shape(self):
                 return [(1, 2)]
+
         data_mock = Data()
 
         plot_mock = mock.Mock()
         np_zeros_mock = mock.Mock()
         np_zeros_mock.side_effect = lambda x: [0, 0]
-        
+
         get_lib_mock = mock.Mock(return_value=plot_mock)
         monkeypatch.setattr("causalimpact.analysis.get_matplotlib", get_lib_mock)
 

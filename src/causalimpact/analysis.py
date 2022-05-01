@@ -68,7 +68,8 @@ class CausalImpact(object):
                 self.params["estimation"],
             )
 
-    def _format_input_data(self, data):
+    @staticmethod
+    def _format_input_data(data):
         """Check and format the data argument provided to CausalImpact().
 
         Args:
@@ -101,7 +102,8 @@ class CausalImpact(object):
 
         return data
 
-    def _check_periods_are_valid(self, pre_period, post_period):
+    @staticmethod
+    def _check_periods_are_valid(pre_period, post_period):
         if not isinstance(pre_period, list) or not isinstance(post_period, list):
             raise ValueError("pre_period and post_period must both be lists")
         if len(pre_period) != 2 or len(post_period) != 2:
@@ -113,7 +115,8 @@ class CausalImpact(object):
                 "pre_period and post period must not contain " + "null values"
             )
 
-    def _align_periods_dtypes(self, pre_period, post_period, data):
+    @staticmethod
+    def _align_periods_dtypes(pre_period, post_period, data):
         """align the dtypes of the pre_period and post_period to the data index.
 
         Args:
@@ -223,7 +226,8 @@ class CausalImpact(object):
             post_period[1] = data.index.max()
         return {"pre_period": pre_period, "post_period": post_period}
 
-    def _check_valid_args_combo(self, args):
+    @staticmethod
+    def _check_valid_args_combo(args):
         data_model_args = [True, True, True, False, False]
         ucm_model_args = [False, False, False, True, True]
 
@@ -236,7 +240,8 @@ class CausalImpact(object):
                 " or ``ucm_model" + "and ``post_period_response``"
             )
 
-    def _check_valid_alpha(self, alpha):
+    @staticmethod
+    def _check_valid_alpha(alpha):
         if alpha is None:
             raise ValueError("alpha must not be None")
         if not np.isreal(alpha):
@@ -452,8 +457,8 @@ class CausalImpact(object):
         self.inferences = inferences["series"]
         self.model = fitted_model
 
+    @staticmethod
     def _print_report(
-        self,
         mean_pred_fmt,
         mean_resp_fmt,
         mean_lower_fmt,

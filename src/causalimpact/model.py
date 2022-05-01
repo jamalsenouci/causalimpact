@@ -56,9 +56,7 @@ def construct_model(data, model_args={}):
     observations_ill_conditioned(y)
 
     # LocalLevel specification of statespace
-    ss = {}
-    ss["endog"] = y.values
-    ss["level"] = "llevel"
+    ss = {"endog": y.values, "level": "llevel"}
 
     # No regression?
     if len(data.columns) == 1:

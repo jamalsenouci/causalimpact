@@ -27,10 +27,9 @@ tracker](https://github.com/jamalsenouci/causalimpact/issues). If you
 don\'t see anything useful there, please feel free to fire an issue
 report.
 
-
->Please don\'t forget to include the closed issues in your search.
-Sometimes a solution was already reported, and the problem is considered
-**solved**.
+> Please don\'t forget to include the closed issues in your search.
+> Sometimes a solution was already reported, and the problem is considered
+> **solved**.
 
 New issue reports should include information about your programming
 environment (e.g., operating system, Python version) and steps to
@@ -44,16 +43,16 @@ cause of the issue.
 You can help improve `causalimpact` docs by making them more readable
 and coherent, or by adding missing information and correcting mistakes.
 
-`causalimpact` documentation uses  as its main
+`causalimpact` documentation uses as its main
 documentation compiler. This means that the docs are kept in the same
 repository as the project code, and that any documentation update is
 done in the same way as a code contribution.
 
 Documentation is written in the markdown language conforming to the
-[CommonMark](https://commonmark.org/)  spec
-
+[CommonMark](https://commonmark.org/) spec
 
 ### Using the Github web editor
+
 Please notice that the [GitHub web
 interface](https://docs.github.com/en/repositories/working-with-files/managing-files/editing-files)
 provides a quick way of propose changes in `causalimpact`\'s files.
@@ -72,6 +71,7 @@ the bottom of the page describing which changes have you made and what
 are the motivations behind them and submit your proposal.
 
 ### Using github.dev
+
 [github.dev](https://github.com/github/dev) also provides a convenient way to spin up a vscode editor in your browser for small changes.
 
 ### Working locally
@@ -83,14 +83,19 @@ Example: [vscode guide](https://code.visualstudio.com/docs/languages/markdown)
 
 ## Code Contributions
 
-::: todo
-Please include a reference or explanation about the internals of the
-project.
+### Internals
 
-An architecture description, design principles or at least a summary of
-the main concepts will make it easy for potential contributors to get
-started quickly.
-:::
+The package exports the CausalImpact class which encapsulates the full range of functionality exposed to the user. This class is defined in src/causalimpact/analysis.py which is responsible for orchestrating the causalimpact workflow.
+
+The causal impact workflow is fairly linear and can be broadly represented as
+
+1. check user provided inputs (happens in analysis.py)
+2. fit the model (happens in model.py)
+3. make the predictions (happens in inferences.py)
+4. format, visualise and summarise the output (happens back in analysis.py)
+
+The model fitting is handled by statsmodels.tsa.structural.UnobservedComponents.
+The plotting is handled using matplotlib
 
 ### Submit an issue
 
@@ -112,7 +117,7 @@ We recommend using vscode's [devcontainers](https://code.visualstudio.com/docs/r
 
 2.  Fork the project
     [repository](https://github.com/jamalsenouci/causalimpact): click
-    on the *Fork* button near the top of the page. This creates a copy
+    on the _Fork_ button near the top of the page. This creates a copy
     of the code under your account on GitHub.
 
 3.  Clone this copy to your local disk:
@@ -156,17 +161,15 @@ We recommend using vscode's [devcontainers](https://code.visualstudio.com/docs/r
 
     to record your changes in [git](https://git-scm.com).
 
-
     Please make sure to see the validation messages from `pre-commit`\_
     and fix any eventual issues. This should automatically use
     [flake8](https://flake8.pycqa.org/en/stable/)/[black](https://pypi.org/project/black/)
     to check/fix the code style in a way that is compatible with the
     project.
 
-    > **Important**
-    \
-    Don\'t forget to add unit tests and documentation in case your
-    contribution adds an additional feature and is not just a bugfix.
+    > **Important** > \
+    > Don\'t forget to add unit tests and documentation in case your
+    > contribution adds an additional feature and is not just a bugfix.
 
     Writing a [descriptive commit
     message](https://chris.beams.io/posts/git-commit) is highly

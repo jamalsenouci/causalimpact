@@ -99,10 +99,7 @@ class CausalImpact(object):
             raise ValueError("data must have at least 3 time points")
 
         # Must not have NA in covariates (if any)
-        if (
-            len(data.columns) >= 2
-            and pd.isnull(data.iloc[:, 1:]).any(axis=None)
-        ):
+        if len(data.columns) >= 2 and pd.isnull(data.iloc[:, 1:]).any(axis=None):
             raise ValueError("covariates must not contain null values")
 
         return data

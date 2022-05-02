@@ -9,7 +9,7 @@ from causalimpact.inferences import compile_posterior_inferences
 import scipy.stats as st
 
 
-class CausalImpact(object):
+class CausalImpact:
     def __init__(
         self,
         data=None,

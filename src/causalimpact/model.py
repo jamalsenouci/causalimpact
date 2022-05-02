@@ -37,7 +37,7 @@ def observations_ill_conditioned(y):
     return False
 
 
-def construct_model(data, model_args={}):
+def construct_model(data, model_args=None):
     """Specifies the model and performs inference. Inference means using a
     technique that combines Kalman Filters with Maximum Likelihood Estimators
     methods to fit the parameters that best explain the observed data.
@@ -49,6 +49,8 @@ def construct_model(data, model_args={}):
     Returns:
       An Unobserved Components Model, as returned by UnobservedComponents()
     """
+    if model_args is None:
+        model_args = {}
     from statsmodels.tsa.statespace.structural import UnobservedComponents
 
     y = data.iloc[:, 0]

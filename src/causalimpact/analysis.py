@@ -799,10 +799,12 @@ class CausalImpact(object):
 
     def plot(
         self,
-        panels=["original", "pointwise", "cumulative"],
+        panels=None,
         figsize=(15, 12),
         fname=None,
     ):
+        if panels is None:
+            panels = ["original", "pointwise", "cumulative"]
         plt = get_matplotlib()
         fig = plt.figure(figsize=figsize)
 

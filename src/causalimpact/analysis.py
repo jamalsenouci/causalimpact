@@ -9,7 +9,7 @@ from causalimpact.inferences import compile_posterior_inferences
 import scipy.stats as st
 
 
-class CausalImpact:
+class CausalImpact(object):
     def __init__(
         self,
         data=None,
@@ -81,12 +81,9 @@ class CausalImpact:
         # If <data> is a Pandas DataFrame and the first column is 'date',
         # try to convert
 
-        if (
-            isinstance(data, pd.DataFrame)
-            and isinstance(data.columns[0], str)
-            and data.columns[0].lower() in ["date", "time"]
-        ):
-            data = data.set_index(data.columns[0])
+        if isinstance(data, pd.DataFrame) and isinstance(data.columns[0], str):
+            if data.columns[0].lower() in ["date", "time"]:
+                data = data.set_index(data.columns[0])
 
         # Try to convert to Pandas DataFrame
         try:
@@ -99,8 +96,9 @@ class CausalImpact:
             raise ValueError("data must have at least 3 time points")
 
         # Must not have NA in covariates (if any)
-        if len(data.columns) >= 2 and pd.isnull(data.iloc[:, 1:]).any(axis=None):
-            raise ValueError("covariates must not contain null values")
+        if len(data.columns) >= 2:
+            if pd.isnull(data.iloc[:, 1:]).any(axis=None):
+                raise ValueError("covariates must not contain null values")
 
         return data
 
@@ -482,7 +480,7 @@ class CausalImpact:
         p_value,
         alpha,
     ):
-        sig = not ((cum_rel_effect_lower < 0) and (cum_rel_effect_upper > 0))
+        sig = not (cum_rel_effect_lower < 0 < cum_rel_effect_upper)
         pos = cum_rel_effect > 0
         # Summarize averages
         stmt = textwrap.dedent(

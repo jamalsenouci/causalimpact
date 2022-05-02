@@ -40,7 +40,7 @@ def test_standardize_returns_expected_types():
     result = standardize(data, pre_period, post_period)
 
     assert isinstance(result, dict)
-    assert set(result.keys()) == set(["data_pre", "data_post", "orig_std_params"])
+    assert set(result.keys()) == {"data_pre", "data_post", "orig_std_params"}
 
     assert len(result["data_pre"]) == pre_period[-1] + 1
     assert_frame_equal(

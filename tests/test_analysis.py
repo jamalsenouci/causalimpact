@@ -610,7 +610,7 @@ class TestFormatInput:
         )
 
 
-class TestRunWithData(object):
+class TestRunWithData:
     @staticmethod
     def test_missing_input():
         with pytest.raises(SyntaxError):
@@ -768,7 +768,7 @@ class TestRunWithData(object):
         TestCase().assertFalse(np.any(np.isnan(impact.inferences.iloc[101:, :])))
 
 
-class TestRunWithUCM(object):
+class TestRunWithUCM:
     @staticmethod
     def test_regular_run(expected_columns, impact_ucm):
         impact_ucm.run()
@@ -776,7 +776,7 @@ class TestRunWithUCM(object):
         assert actual_columns == expected_columns
 
 
-class TestSummary(object):
+class TestSummary:
     @staticmethod
     def test_summary(inference_input):
         inferences_df = pd.DataFrame(inference_input)
@@ -885,7 +885,7 @@ class TestSummary(object):
             causal.summary(output="wrong_argument")
 
 
-class TestPlot(object):
+class TestPlot:
     # @patch('causalimpact.data')
     @staticmethod
     def test_plot(monkeypatch):
@@ -944,7 +944,7 @@ class TestPlot(object):
 
         inferences_mock.iloc.__getitem__.side_effect = getitem
 
-        class Data(object):
+        class Data:
             @property
             def index(self):
                 return "index"

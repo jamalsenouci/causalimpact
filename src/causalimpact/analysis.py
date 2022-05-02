@@ -868,11 +868,11 @@ class CausalImpact(object):
         # Cumulative impact
         if "cumulative" in panels:
             if "ax1" in locals():
-                ax3 = plt.subplot(313, sharex=ax1)
+                plt.subplot(313, sharex=ax1)
             elif "ax2" in locals():
-                ax3 = plt.subplot(313, sharex=ax2)
+                plt.subplot(313, sharex=ax2)
             else:
-                ax3 = plt.subplot(313)
+                plt.subplot(313)
             plt.plot(
                 inferences.index,
                 inferences.cum_effect,

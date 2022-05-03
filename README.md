@@ -22,10 +22,10 @@ https://mybinder.org/v2/gh/jamalsenouci/causalimpact/HEAD?filepath=GettingStarte
 
 #### Installation
 
-_get the latest version from https://github.com/jamalsenouci/causalimpact:_
+install the latest release via pip
 
 ```bash
-pip install git+ssh://github.com/jamalsenouci/causalimpact.git
+pip install causalimpact
 ```
 
 #### Getting started

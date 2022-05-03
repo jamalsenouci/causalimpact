@@ -310,28 +310,29 @@ class TestFormatInput:
             )
 
     @staticmethod
-    def test_bad_post_period_response(causal_impact, impact_ucm):
+    def test_bad_post_period_response(causal_impact, ucm_model):
         # Note that consistency with ucm.model is not tested in format_input()
+        ucm_model = ucm_model
         with pytest.raises(ValueError) as excinfo:
             causal_impact._format_input(
-                None, None, None, None, impact_ucm, pd.to_datetime("2011-01-01"), 0.05
+                None, None, None, None, ucm_model, pd.to_datetime("2011-01-01"), 0.05
             )
         assert str(excinfo.value) == ("post_period_response must be list-like")
 
         with pytest.raises(ValueError) as excinfo:
-            causal_impact._format_input(None, None, None, None, impact_ucm, True, 0.05)
+            causal_impact._format_input(None, None, None, None, ucm_model, True, 0.05)
         assert str(excinfo.value) == ("post_period_response must be list-like")
 
         with pytest.raises(ValueError) as excinfo:
             causal_impact._format_input(
-                None, None, None, None, impact_ucm, [pd.to_datetime("2018-01-01")], 0.05
+                None, None, None, None, ucm_model, [pd.to_datetime("2018-01-01")], 0.05
             )
         assert str(excinfo.value) == (
             "post_period_response should not be datetime values"
         )
 
         with pytest.raises(ValueError) as excinfo:
-            causal_impact._format_input(None, None, None, None, impact_ucm, [2j], 0.05)
+            causal_impact._format_input(None, None, None, None, ucm_model, [2j], 0.05)
         assert str(excinfo.value) == (
             "post_period_response must contain all real values"
         )
@@ -345,6 +346,21 @@ class TestFormatInput:
                     data, [0, 3], [3, 10], {}, None, None, bad_alpha
                 )
         assert str(excinfo.value) == "alpha must be a real number"
+
+    @staticmethod
+    def test_bad_ucm(data, causal_impact):
+        from statsmodels.tsa.statespace.sarimax import SARIMAX
+
+        bad_ucm = SARIMAX(endog=[1, 2, 3, 4])
+
+        with pytest.raises(ValueError) as excinfo:
+            causal_impact._format_input(None, None, None, None, bad_ucm, [2], 0.05)
+        assert (
+            str(excinfo.value)
+            == "ucm_model must be an object of class "
+            + "statsmodels.tsa.statespace.structural.UnobservedComponents "
+            + "instead received statsmodels.tsa.statespace.sarimax.SARIMAX"
+        )
 
     @staticmethod
     def test_input_w_date_column():

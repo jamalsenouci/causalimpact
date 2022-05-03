@@ -324,10 +324,11 @@ class CausalImpact:
 
         # Check <ucm_model>
         if ucm_model is not None:
-            if isinstance(ucm_model, UnobservedComponents):
+            if not isinstance(ucm_model, UnobservedComponents):
                 raise ValueError(
-                    "ucm_model must be an object of class \
-                                 statsmodels.tsa.UnobservedComponents"
+                    "ucm_model must be an object of class "
+                    "statsmodels.tsa.statespace.structural.UnobservedComponents "
+                    "instead received " + str(type(ucm_model))[8:-2]
                 )
 
         # Check <post_period_response>

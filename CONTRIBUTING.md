@@ -262,16 +262,17 @@ used to release a new version for `causalimpact`:
 1.  Make sure all unit tests are successful.
 2.  Tag the current commit on the main branch with a release tag, e.g.,
     `v1.2.3`.
-3.  Push the new tag to the upstream
+3.  Run `cz changelog` to generate an updated changelog.md file and push it
+4.  Push the new tag to the upstream
     [repository](https://github.com/%3CUSERNAME%3E/causalimpact), e.g.,
     `git push upstream v1.2.3`
-4.  Clean up the `dist` and `build` folders with `tox -e clean` (or
+5.  Clean up the `dist` and `build` folders with `tox -e clean` (or
     `rm -rf dist build`) to avoid confusion with old builds and Sphinx
     docs.
-5.  Run `tox -e build` and check that the files in `dist` have the
+6.  Run `tox -e build` and check that the files in `dist` have the
     correct version (no `.dirty` or [git](https://git-scm.com) hash)
     according to the [git](https://git-scm.com) tag. Also check the
     sizes of the distributions, if they are too big (e.g., \> 500KB),
     unwanted clutter may have been accidentally included.
-6.  Run `tox -e publish -- --repository pypi` and check that everything
+7.  Run `tox -e publish -- --repository pypi` and check that everything
     was uploaded to [PyPI](https://pypi.org/) correctly.

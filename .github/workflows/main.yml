@@ -38,6 +38,9 @@ jobs:
       - uses: codecov/codecov-action@v2
         with:
           files: ./coverage.xml
+      - name: build
+        run: |
+          tox -e build
       - name: Publish distribution 📦 to Test PyPI
         uses: pypa/gh-action-pypi-publish@master
         with:

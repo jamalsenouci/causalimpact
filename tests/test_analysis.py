@@ -731,15 +731,14 @@ class TestRunWithData:
 
     @staticmethod
     def test_missing_values_in_pre_period_y(pre_period, post_period):
+        """Test that all columns in the result series except the
+        point predictions have missing values at the time points the
+        result time series has missing values."""
         data = pd.DataFrame(np.random.randn(200, 3), columns=["y", "x1", "x2"])
         data.iloc[95:100, 0] = np.nan
 
         impact = CausalImpact(data, pre_period, post_period)
         impact.run()
-
-        """Test that all columns in the result series except the
-        point predictions have missing values at the time points the
-        result time series has missing values."""
 
         predicted_cols = [
             impact.inferences.columns.get_loc(col)

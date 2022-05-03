@@ -37,6 +37,7 @@ class CausalImpact:
             "alpha": alpha,
             "estimation": estimation,
         }
+        self.inference = None
 
     def run(self):
         kwargs = self._format_input(
@@ -279,6 +280,8 @@ class CausalImpact:
         Returns:
             list of checked (and possibly reformatted) input arguments
         """
+        from statsmodels.tsa.statespace.structural import UnobservedComponents
+
         # Check that a consistent set of variables has been provided
         args = [data, pre_period, post_period, ucm_model, post_period_response]
 
@@ -315,22 +318,17 @@ class CausalImpact:
             for arg in missing:
                 model_args[arg] = _defaults[arg]
 
-        """
-            Check only those parts of <model_args> that are used
-            in this file The other fields will be checked in
-            FormatInputForConstructModel()
-        """
-
         # Check <standardize_data>
-        if type(model_args["standardize_data"]) != bool:
+        if not isinstance(model_args["standardize_data"], bool):
             raise ValueError("model_args.standardize_data must be a" + " boolean value")
 
-        """ Check <ucm_model> TODO
+        # Check <ucm_model>
         if ucm_model is not None:
-            if type(ucm_model) != ucm:
-                raise ValueError("ucm_model must be an object of class \
-                                 statsmodels_ucm")
-        """
+            if isinstance(ucm_model, UnobservedComponents):
+                raise ValueError(
+                    "ucm_model must be an object of class \
+                                 statsmodels.tsa.UnobservedComponents"
+                )
 
         # Check <post_period_response>
         if ucm_model is not None:

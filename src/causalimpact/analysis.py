@@ -9,7 +9,7 @@ from causalimpact.inferences import compile_posterior_inferences
 import scipy.stats as st
 
 
-class CausalImpact(object):
+class CausalImpact:
     def __init__(
         self,
         data=None,
@@ -68,7 +68,8 @@ class CausalImpact(object):
                 self.params["estimation"],
             )
 
-    def _format_input_data(self, data):
+    @staticmethod
+    def _format_input_data(data):
         """Check and format the data argument provided to CausalImpact().
 
         Args:
@@ -80,9 +81,12 @@ class CausalImpact(object):
         # If <data> is a Pandas DataFrame and the first column is 'date',
         # try to convert
 
-        if isinstance(data, pd.DataFrame) and isinstance(data.columns[0], str):
-            if data.columns[0].lower() in ["date", "time"]:
-                data = data.set_index(data.columns[0])
+        if (
+            isinstance(data, pd.DataFrame)
+            and isinstance(data.columns[0], str)
+            and data.columns[0].lower() in ["date", "time"]
+        ):
+            data = data.set_index(data.columns[0])
 
         # Try to convert to Pandas DataFrame
         try:
@@ -95,13 +99,13 @@ class CausalImpact(object):
             raise ValueError("data must have at least 3 time points")
 
         # Must not have NA in covariates (if any)
-        if len(data.columns) >= 2:
-            if pd.isnull(data.iloc[:, 1:]).any(axis=None):
-                raise ValueError("covariates must not contain null values")
+        if len(data.columns) >= 2 and pd.isnull(data.iloc[:, 1:]).any(axis=None):
+            raise ValueError("covariates must not contain null values")
 
         return data
 
-    def _check_periods_are_valid(self, pre_period, post_period):
+    @staticmethod
+    def _check_periods_are_valid(pre_period, post_period):
         if not isinstance(pre_period, list) or not isinstance(post_period, list):
             raise ValueError("pre_period and post_period must both be lists")
         if len(pre_period) != 2 or len(post_period) != 2:
@@ -113,7 +117,8 @@ class CausalImpact(object):
                 "pre_period and post period must not contain " + "null values"
             )
 
-    def _align_periods_dtypes(self, pre_period, post_period, data):
+    @staticmethod
+    def _align_periods_dtypes(pre_period, post_period, data):
         """align the dtypes of the pre_period and post_period to the data index.
 
         Args:
@@ -223,7 +228,8 @@ class CausalImpact(object):
             post_period[1] = data.index.max()
         return {"pre_period": pre_period, "post_period": post_period}
 
-    def _check_valid_args_combo(self, args):
+    @staticmethod
+    def _check_valid_args_combo(args):
         data_model_args = [True, True, True, False, False]
         ucm_model_args = [False, False, False, True, True]
 
@@ -236,7 +242,8 @@ class CausalImpact(object):
                 " or ``ucm_model" + "and ``post_period_response``"
             )
 
-    def _check_valid_alpha(self, alpha):
+    @staticmethod
+    def _check_valid_alpha(alpha):
         if alpha is None:
             raise ValueError("alpha must not be None")
         if not np.isreal(alpha):
@@ -452,8 +459,8 @@ class CausalImpact(object):
         self.inferences = inferences["series"]
         self.model = fitted_model
 
+    @staticmethod
     def _print_report(
-        self,
         mean_pred_fmt,
         mean_resp_fmt,
         mean_lower_fmt,
@@ -475,7 +482,7 @@ class CausalImpact(object):
         p_value,
         alpha,
     ):
-        sig = not ((cum_rel_effect_lower < 0) and (cum_rel_effect_upper > 0))
+        sig = not (cum_rel_effect_lower < 0 < cum_rel_effect_upper)
         pos = cum_rel_effect > 0
         # Summarize averages
         stmt = textwrap.dedent(
@@ -799,10 +806,12 @@ class CausalImpact(object):
 
     def plot(
         self,
-        panels=["original", "pointwise", "cumulative"],
+        panels=None,
         figsize=(15, 12),
         fname=None,
     ):
+        if panels is None:
+            panels = ["original", "pointwise", "cumulative"]
         plt = get_matplotlib()
         fig = plt.figure(figsize=figsize)
 
@@ -861,11 +870,11 @@ class CausalImpact(object):
         # Cumulative impact
         if "cumulative" in panels:
             if "ax1" in locals():
-                ax3 = plt.subplot(313, sharex=ax1)
+                plt.subplot(313, sharex=ax1)
             elif "ax2" in locals():
-                ax3 = plt.subplot(313, sharex=ax2)
+                plt.subplot(313, sharex=ax2)
             else:
-                ax3 = plt.subplot(313)
+                plt.subplot(313)
             plt.plot(
                 inferences.index,
                 inferences.cum_effect,

@@ -154,8 +154,6 @@ def compile_posterior_inferences(
         data.index = response_index
 
         series = data
-        # summary = compile_summary_table(data_post, predict_mean, alpha)
-        # report = interpret_summary_table(summary)
 
         inferences = {
             "series": series,

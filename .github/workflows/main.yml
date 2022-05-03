@@ -33,4 +33,8 @@ jobs:
           tox -e lint
       - name: Test with tox
         run: |
-          tox
+          tox -- --cov-report=xml
+      - uses: actions/checkout@master
+      - uses: codecov/codecov-action@v2
+        with:
+          files: ./coverage.xml # optional

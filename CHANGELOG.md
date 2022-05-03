@@ -1,10 +1,3 @@
-## Unreleased
-
-### Fix
-
-- help flake understand unused import
-- removed unused assignment
-
 ## v0.1.6 (2022-04-30)
 
 ### Fix

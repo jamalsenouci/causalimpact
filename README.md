@@ -3,6 +3,7 @@
 [![Python package](https://github.com/jamalsenouci/causalimpact/actions/workflows/main.yml/badge.svg)](https://github.com/jamalsenouci/causalimpact/actions/workflows/main.yml)
 [![Coverage Status](https://coveralls.io/repos/github/jamalsenouci/causalimpact/badge.svg)](https://coveralls.io/github/jamalsenouci/causalimpact)
 ![monthly downloads](https://pepy.tech/badge/causalimpact/month)
+[![DeepSource](https://deepsource.io/gh/jamalsenouci/causalimpact.svg/?label=active+issues&show_trend=true&token=R5aIDSkIId_5THWTAPKccjcH)](https://deepsource.io/gh/jamalsenouci/causalimpact/?ref=repository-badge)
 
 #### TO DO
 

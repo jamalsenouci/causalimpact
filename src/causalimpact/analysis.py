@@ -323,13 +323,15 @@ class CausalImpact:
             raise ValueError("model_args.standardize_data must be a" + " boolean value")
 
         # Check <ucm_model>
-        if ucm_model is not None:
-            if not isinstance(ucm_model, UnobservedComponents):
-                raise ValueError(
-                    "ucm_model must be an object of class "
-                    "statsmodels.tsa.statespace.structural.UnobservedComponents "
-                    "instead received " + str(type(ucm_model))[8:-2]
-                )
+        if (
+            ucm_model is not None
+            and not isinstance(ucm_model, UnobservedComponents)
+        ):
+            raise ValueError(
+                "ucm_model must be an object of class "
+                "statsmodels.tsa.statespace.structural.UnobservedComponents "
+                "instead received " + str(type(ucm_model))[8:-2]
+            )
 
         # Check <post_period_response>
         if ucm_model is not None:

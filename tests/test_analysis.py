@@ -311,8 +311,6 @@ class TestFormatInput:
 
     @staticmethod
     def test_bad_post_period_response(causal_impact, ucm_model):
-        # Note that consistency with ucm.model is not tested in format_input()
-        ucm_model = ucm_model
         with pytest.raises(ValueError) as excinfo:
             causal_impact._format_input(
                 None, None, None, None, ucm_model, pd.to_datetime("2011-01-01"), 0.05

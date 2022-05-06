@@ -4,34 +4,67 @@
 #
 #    pip-compile
 #
+arviz==0.12.0
+    # via pymc3
+cachetools==5.0.0
+    # via pymc3
+cftime==1.6.0
+    # via netcdf4
 cycler==0.11.0
     # via matplotlib
+deprecat==2.1.1
+    # via pymc3
+dill==0.3.4
+    # via pymc3
+fastprogress==1.0.2
+    # via pymc3
+filelock==3.6.0
+    # via theano-pymc
 fonttools==4.33.3
     # via matplotlib
 kiwisolver==1.4.2
     # via matplotlib
 matplotlib==3.5.1
-    # via -r requirements.in
-numpy==1.22.3
     # via
     #   -r requirements.in
+    #   arviz
+netcdf4==1.5.8
+    # via arviz
+numpy==1.22.1
+    # via
+    #   -r requirements.in
+    #   arviz
+    #   cftime
     #   matplotlib
+    #   netcdf4
     #   pandas
     #   patsy
+    #   pymc3
     #   scipy
     #   statsmodels
+    #   theano-pymc
+    #   xarray
 packaging==21.3
     # via
+    #   arviz
     #   matplotlib
     #   statsmodels
+    #   xarray
 pandas==1.4.2
     # via
     #   -r requirements.in
+    #   arviz
+    #   pymc3
     #   statsmodels
+    #   xarray
 patsy==0.5.2
-    # via statsmodels
+    # via
+    #   pymc3
+    #   statsmodels
 pillow==9.1.0
     # via matplotlib
+pymc3==3.11.5
+    # via -r requirements.in
 pyparsing==3.0.8
     # via
     #   matplotlib
@@ -42,11 +75,30 @@ python-dateutil==2.8.2
     #   pandas
 pytz==2022.1
     # via pandas
-scipy==1.8.0
-    # via statsmodels
+scipy==1.7.3
+    # via
+    #   arviz
+    #   pymc3
+    #   statsmodels
+    #   theano-pymc
+semver==2.13.0
+    # via pymc3
 six==1.16.0
     # via
     #   patsy
     #   python-dateutil
 statsmodels==0.13.2
     # via -r requirements.in
+theano-pymc==1.1.2
+    # via pymc3
+typing-extensions==4.2.0
+    # via
+    #   arviz
+    #   pymc3
+wrapt==1.14.1
+    # via deprecat
+xarray==2022.3.0
+    # via arviz
+
+# The following packages are considered to be unsafe in a requirements file:
+# setuptools

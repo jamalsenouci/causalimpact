@@ -5,11 +5,58 @@ from pandas.api.types import is_list_like
 
 from causalimpact.misc import standardize_all_variables, df_print, get_matplotlib
 from causalimpact.model import construct_model, model_fit
-from causalimpact.inferences import compile_posterior_inferences
+from causalimpact.inferences import compile_inferences
 import scipy.stats as st
 
 
 class CausalImpact:
+    """CausalImpact() performs causal inference through counterfactual
+    predictions using a Bayesian structural time-series model.
+
+    Parameters:
+    ----------
+        data : pandas dataframe
+            the response variable must be in the first column, and any covariates
+            in subsequent columns.
+        pre_period : list
+            A list specifying the first and the last time point of the
+            pre-intervention period in the response column. This period can be
+            thought of as a training period, used to determine the relationship
+            between the response variable and the covariates.
+        post_period : list
+            A vector specifying the first and the last day of the post-intervention
+            period we wish to study. This is the period after the intervention has
+            begun whose effect we are interested in. The relationship between
+            response variable and covariates, as determined during the pre-period,
+            will be used to predict how the response variable should have evolved
+            during the post-period had no intervention taken place.
+        model_args : dict
+            Optional arguments that can be used to adjust the default construction
+            of the state-space model used for inference.
+            For full control over the model, you can construct your own model using
+            the statsmodels package and feed the model into CausalImpact().
+        ucm_model : statsmodels.tsa.statespace.structural.UnobservedComponents
+            Instead of passing in data and having CausalImpact construct a
+            model, it is possible to construct a model yourself using the
+            statsmodel package. In this case, omit data, pre_period, and
+            post_period. Instead only pass in ucm_model, y_post, alpha (optional).
+            The model must have been fitted on data where the response variable was
+            set to np.nan during the post-treatment period. The actual observed data
+            during this period must then be passed to the function in y_post.
+        post_period_response : list | pd.Series | np.Array
+            Actual observed data during the post-intervention period. This is required
+            if and only if a fitted ucm_model is passed instead of data.
+        alpha : float
+            Desired tail-area probability for posterior intervals. Defaults to 0.05,
+            which will produce central 95% intervals.
+
+
+        Returns
+        -------
+        CausalImpact Object
+
+    """
+
     def __init__(
         self,
         data=None,
@@ -37,7 +84,7 @@ class CausalImpact:
             "alpha": alpha,
             "estimation": estimation,
         }
-        self.inference = None
+        self.inferences = None
 
     def run(self):
         kwargs = self._format_input(
@@ -134,7 +181,6 @@ class CausalImpact:
             pre_period = [pd.to_datetime(date) for date in pre_period]
             post_period = [pd.to_datetime(date) for date in post_period]
             pd.core.dtypes.common.is_datetime_or_timedelta_dtype(pre_period)
-            print(pre_period)
         # if index is not datetime then error if datetime pre and post is passed
         elif pd.core.dtypes.common.is_datetime_or_timedelta_dtype(
             pd.Series(pre_period)
@@ -177,7 +223,6 @@ class CausalImpact:
             else:
                 pre_period = [str(idx) for idx in pre_period]
                 post_period = [str(idx) for idx in post_period]
-                print(pre_period)
         else:
             raise ValueError(
                 "pre_period ("
@@ -303,6 +348,8 @@ class CausalImpact:
         # Parse <model_args>, fill gaps using <_defaults>
 
         _defaults = {
+            "ndraws": 1000,
+            "nburn": 100,
             "niter": 1000,
             "standardize_data": True,
             "prior_level_sd": 0.01,
@@ -384,10 +431,10 @@ class CausalImpact:
         model = construct_model(df_pre, model_args)
         self.model = model
 
-        trained_model = model_fit(model, estimation, model_args["niter"])
+        trained_model = model_fit(model, estimation, model_args)
         self.model = trained_model
 
-        inferences = compile_posterior_inferences(
+        inferences = compile_inferences(
             trained_model,
             data,
             df_pre,
@@ -412,18 +459,6 @@ class CausalImpact:
           post_period_response: observed data during the post-intervention
                                 period
           alpha: tail-probabilities of posterior intervals"""
-        # Guess <pre_period> and <post_period> from the observation vector
-        # These will be needed for plotting period boundaries in plot().
-        # raise NotImplementedError()
-
-        """
-        try:
-            indices = infer_period_indices_from_data(y)
-        except ValueError:
-            raise ValueError("ucm_model must have been fitted on data where " +
-                             "the values in the post-intervention period " +
-                             "have been set to NA")
-        """
 
         df_pre = ucm_model.data.orig_endog[: -len(post_period_response)]
         df_pre = pd.DataFrame(df_pre)
@@ -436,10 +471,10 @@ class CausalImpact:
 
         orig_std_params = (0, 1)
 
-        fitted_model = model_fit(ucm_model, estimation, model_args["niter"])
+        fitted_model = model_fit(ucm_model, estimation, model_args)
 
         # Compile posterior inferences
-        inferences = compile_posterior_inferences(
+        inferences = compile_inferences(
             fitted_model,
             data,
             df_pre,
@@ -450,7 +485,7 @@ class CausalImpact:
             estimation,
         )
 
-        obs_inter = fitted_model.model.nobs - len(post_period_response)
+        obs_inter = fitted_model.model_nobs - len(post_period_response)
 
         self.params["pre_period"] = [0, obs_inter - 1]
         self.params["post_period"] = [obs_inter, -1]
@@ -668,7 +703,20 @@ class CausalImpact:
         print(textwrap.fill(stmt4, width=width))
 
     def summary(self, output="summary", width=120, path=None):
+        """reports a summary of the results
 
+        Parameters
+        ----------
+        output: str
+            can be summary or report. summary outputs a table.
+            report outputs a natural language description of the
+            findings
+        width : int
+            line width of the output. Only relevant if output == report
+        path : str
+            path to output summary to csv. Only relevant if output == summary
+
+        """
         alpha = self.params["alpha"]
         confidence = "{}%".format(int((1 - alpha) * 100))
         post_period = self.params["post_period"]
@@ -823,7 +871,6 @@ class CausalImpact:
         # Observation and regression components
         if "original" in panels:
             ax1 = plt.subplot(3, 1, 1)
-            print(inferences.point_pred)
             plt.plot(inferences.point_pred, "r--", linewidth=2, label="model")
             plt.plot(inferences.response, "k", linewidth=2, label="endog")
 

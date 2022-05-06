@@ -92,3 +92,4 @@ ENV/
 #swap files
 *swp
 node_modules
+temp

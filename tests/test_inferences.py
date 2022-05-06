@@ -5,12 +5,14 @@ import pytest
 import numpy as np
 import pandas as pd
 from pandas.testing import assert_series_equal
-from statsmodels.tsa.statespace.structural import UnobservedComponents
 from statsmodels.tsa.arima_process import ArmaProcess
 
 import causalimpact
+from unittest.mock import Mock
 
-compile_posterior = causalimpact.inferences.compile_posterior_inferences
+from causalimpact.model import ModelResults
+
+compile_inferences = causalimpact.inferences.compile_inferences
 np.random.seed(1)
 
 
@@ -28,9 +30,53 @@ def data():
     return data
 
 
-def test_compile_posterior_inferences_w_data(data):
-    pre_period = [0, 70]
-    post_period = [71, 100]
+@pytest.fixture
+def pre_period():
+    return [0, 49]
+
+
+@pytest.fixture
+def post_period():
+    return [50, 100]
+
+
+@pytest.fixture
+def trained_model(post_period):
+    trained_model = Mock(spec=ModelResults)
+    trained_model.model_nobs = 100
+    # the mocked methods on these two classses
+    # only work because pre-period and
+    # post_period are both 50 length
+
+    class PredictionResultsMock:
+        def __init__(self, n):
+            self.predicted_mean = np.ones(50)
+
+        def conf_int(self, alpha=None):
+            return np.ones(100).reshape(50, 2)
+
+    class ForecastResultsMock:
+        def __init__(self):
+            self.predicted_mean = np.ones(50)
+
+        def conf_int(self, alpha=None):
+            return np.ones(100).reshape(50, 2)
+
+    def get_prediction_mock(start=None, end=None):
+        if start is not None or end is not None:
+            return PredictionResultsMock(n=50)
+        else:
+            return PredictionResultsMock(n=100)
+
+    def get_forecast_mock(df_post, alpha=None):
+        return ForecastResultsMock()
+
+    trained_model.get_prediction = get_prediction_mock
+    trained_model.get_forecast = get_forecast_mock
+    return trained_model
+
+
+def test_compile_inferences_w_data(data, pre_period, post_period, trained_model):
 
     df_pre = data.loc[pre_period[0] : pre_period[1], :]
     df_post = data.loc[post_period[0] : post_period[1], :]
@@ -39,13 +85,9 @@ def test_compile_posterior_inferences_w_data(data):
     alpha = 0.05
     orig_std_params = (0.0, 1.0)
 
-    model = UnobservedComponents(
-        endog=df_pre.iloc[:, 0].values, level="llevel", exog=df_pre.iloc[:, 1:].values
-    )
+    estimation = "MLE"
 
-    trained_model = model.fit()
-
-    inferences = compile_posterior(
+    inferences = compile_inferences(
         trained_model,
         data,
         df_pre,
@@ -53,6 +95,7 @@ def test_compile_posterior_inferences_w_data(data):
         post_period_response,
         alpha,
         orig_std_params,
+        estimation,
     )
 
     expected_response = pd.Series(data.iloc[:, 0], name="response")
@@ -63,9 +106,7 @@ def test_compile_posterior_inferences_w_data(data):
     assert_series_equal(expected_cumsum, inferences["series"]["cum_response"])
 
     predictor = trained_model.get_prediction()
-    forecaster = trained_model.get_forecast(
-        steps=len(df_post), exog=df_post.iloc[:, 1].values.reshape(-1, 1), alpha=alpha
-    )
+    forecaster = trained_model.get_forecast(df_post, alpha=alpha)
 
     pre_pred = predictor.predicted_mean
     post_pred = forecaster.predicted_mean
@@ -160,9 +201,9 @@ def test_compile_posterior_inferences_w_data(data):
     )
 
 
-def test_compile_posterior_inferences_w_post_period_response(data):
-    pre_period = [0, 70]
-    post_period = [71, 100]
+def test_compile_inferences_w_post_period_response(
+    data, pre_period, post_period, trained_model
+):
 
     df_pre = data.loc[pre_period[0] : pre_period[1], :]
     df_post = data.loc[post_period[0] : post_period[1], :]
@@ -180,15 +221,17 @@ def test_compile_posterior_inferences_w_post_period_response(data):
 
     alpha = 0.05
     orig_std_params = (0.0, 1.0)
+    estimation = "MLE"
 
-    model = UnobservedComponents(
-        endog=data.iloc[:, 0].values, level="llevel", exog=data.iloc[:, 1:].values
-    )
-
-    trained_model = model.fit()
-
-    inferences = compile_posterior(
-        trained_model, data, df_pre, None, post_period_response, alpha, orig_std_params
+    inferences = compile_inferences(
+        trained_model,
+        data,
+        df_pre,
+        None,
+        post_period_response,
+        alpha,
+        orig_std_params,
+        estimation,
     )
 
     expected_response = pd.Series(data.iloc[:, 0], name="response")

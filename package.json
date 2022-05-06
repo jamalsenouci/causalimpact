@@ -4,13 +4,15 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "format": "prettier *.md --write"
+    "test": "pytest",
+    "format": "prettier *.md --write",
+    "watch": "onchange 'src/**/*.py' 'tests/**/*.py' -- pytest"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "prettier": "^2.6.2"
+    "prettier": "^2.6.2",
+    "onchange": "^7.1.0"
   }
 }

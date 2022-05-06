@@ -2,12 +2,14 @@
 
 
 import pytest
-import mock
+import unittest.mock as mock
 import numpy as np
 from numpy.testing import assert_array_equal
 import pandas as pd
 
 import causalimpact
+from causalimpact.model import ModelResults
+from statsmodels.tsa.statespace.structural import UnobservedComponents
 
 observations_validate = causalimpact.model.observations_ill_conditioned
 construct_model = causalimpact.model.construct_model
@@ -72,8 +74,15 @@ def test_model_constructor_w_just_endog():
     assert not model.exog
 
 
-def test_model_fit():
+def test_model_fit_with_mle():
     model_mock = mock.Mock()
 
-    _ = model_fit(model_mock, "MLE", 50)
+    model_results = model_fit(model_mock, "MLE", {"niter": 50})
     model_mock.fit.assert_called_once_with(maxiter=50)
+    assert isinstance(model_results, ModelResults)
+
+
+def test_model_fit_with_pymc():
+    model_mock = UnobservedComponents([1, 2, 3, 4], level="llevel")
+    model_results = model_fit(model_mock, "pymc", {"ndraws": 2, "nburn": 1})
+    assert isinstance(model_results, ModelResults)

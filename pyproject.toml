@@ -7,3 +7,8 @@ build-backend = "setuptools.build_meta"
 # For smarter version schemes and other configuration options,
 # check out https://github.com/pypa/setuptools_scm
 version_scheme = "no-guess-dev"
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+version = "0.1.6"
+tag_format = "v$version"

@@ -1,0 +1,7 @@
+name: binder
+dependencies:
+  - pandas
+  - numpy
+  - statsmodels
+  - matplotlib
+  - pymc3

@@ -15,7 +15,7 @@ As with all approaches to causal inference on non-experimental data, valid concl
 
 #### Try it out in the browser
 
-https://mybinder.org/v2/gh/jamalsenouci/causalimpact/HEAD?filepath=GettingStarted.ipynb
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/jamalsenouci/causalimpact/HEAD?labpath=GettingStarted.ipynb)
 
 #### Installation
 

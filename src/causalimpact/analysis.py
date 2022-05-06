@@ -506,6 +506,7 @@ class CausalImpact:
         rel_effect_upper_fmt,
         rel_effect_lower_fmt,
         cum_resp_fmt,
+        cum_pred_fmt,
         cum_lower_fmt,
         cum_upper_fmt,
         confidence,
@@ -520,10 +521,9 @@ class CausalImpact:
         pos = cum_rel_effect > 0
         # Summarize averages
         stmt = textwrap.dedent(
-            """
-                        During the post-intervention period, the response
-                        variable had an average value of
-                        approx. {mean_resp}.
+            """During the post-intervention period, the response
+            variable had an average value of
+            approx. {mean_resp}.
                         """.format(
                 mean_resp=mean_resp_fmt
             )
@@ -576,10 +576,10 @@ class CausalImpact:
         stmt2 += textwrap.dedent(
             """
                 the intervention not taken place, we would have expected
-                a sum of {cum_resp}. The {confidence} interval of this
+                a sum of {cum_pred}. The {confidence} interval of this
                 prediction is [{cum_pred_lower}, {cum_pred_upper}]
                 """.format(
-                cum_resp=cum_resp_fmt,
+                cum_pred=cum_pred_fmt,
                 confidence=confidence,
                 cum_pred_lower=cum_lower_fmt,
                 cum_pred_upper=cum_upper_fmt,
@@ -683,13 +683,17 @@ class CausalImpact:
                         variable during the learning period."""
             )
         if p_value < alpha:
-            stmt += """\n\nThe probability of obtaining this effect by
-                        chance is very small (Bayesian one-sided tail-area
-                        probability p = ", round(p, 3), "). This means the
-                        causal effect can be considered statistically
-                        significant."""
+            stmt5 = textwrap.dedent(
+                """The probability of obtaining this effect by
+                chance is very small (Bayesian one-sided tail-area
+                probability {p}). This means the
+                causal effect can be considered statistically
+                significant.""".format(
+                    p=np.round(p_value, 3)
+                )
+            )
         else:
-            stmt += """\n\nThe probability of obtaining this effect by
+            stmt5 = """The probability of obtaining this effect by
                         chance is p = ", round(p, 3), "). This means the effect may
                         be spurious and would generally not be considered
                         statistically significant.""".format()
@@ -701,6 +705,8 @@ class CausalImpact:
         print(textwrap.fill(stmt3, width=width))
         print("\n")
         print(textwrap.fill(stmt4, width=width))
+        print("\n")
+        print(textwrap.fill(stmt5, width=width))
 
     def summary(self, output="summary", width=120, path=None):
         """reports a summary of the results
@@ -836,6 +842,7 @@ class CausalImpact:
                 rel_effect_upper_fmt,
                 rel_effect_lower_fmt,
                 cum_resp_fmt,
+                cum_pred_fmt,
                 cum_lower_fmt,
                 cum_upper_fmt,
                 confidence,

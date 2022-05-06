@@ -85,6 +85,7 @@ class CausalImpact:
             "estimation": estimation,
         }
         self.inferences = None
+        self.results = None
 
     def run(self):
         kwargs = self._format_input(
@@ -430,11 +431,10 @@ class CausalImpact:
         model = construct_model(df_pre, model_args)
         self.model = model
 
-        trained_model = model_fit(model, estimation, model_args)
-        self.model = trained_model
+        model_results = model_fit(model, estimation, model_args)
 
         inferences = compile_inferences(
-            trained_model,
+            model_results,
             data,
             df_pre,
             df_post,
@@ -446,6 +446,7 @@ class CausalImpact:
 
         # "append" to 'CausalImpact' object
         self.inferences = inferences["series"]
+        self.results = model_results
 
     def _run_with_ucm(
         self, ucm_model, post_period_response, alpha, model_args, estimation
@@ -470,11 +471,11 @@ class CausalImpact:
 
         orig_std_params = (0, 1)
 
-        fitted_model = model_fit(ucm_model, estimation, model_args)
+        model_results = model_fit(ucm_model, estimation, model_args)
 
         # Compile posterior inferences
         inferences = compile_inferences(
-            fitted_model,
+            model_results,
             data,
             df_pre,
             None,
@@ -484,13 +485,13 @@ class CausalImpact:
             estimation,
         )
 
-        obs_inter = fitted_model.model_nobs - len(post_period_response)
+        obs_inter = model_results.model_nobs - len(post_period_response)
 
         self.params["pre_period"] = [0, obs_inter - 1]
         self.params["post_period"] = [obs_inter, -1]
         self.data = pd.concat([df_pre, post_period_response])
         self.inferences = inferences["series"]
-        self.model = fitted_model
+        self.results = model_results
 
     @staticmethod
     def _print_report(

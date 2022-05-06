@@ -202,7 +202,7 @@ def model_fit(model, estimation, model_args):
             # Priors
             sigma2irregular = pm.InverseGamma("sigma2.irregular", 1, 1)
             sigma2level = pm.InverseGamma("sigma2.level", 1, 1)
-            if len(model.exog) == 0:
+            if model.exog is None:
                 # convert variables to tensor vectors
                 theta = tt.as_tensor_variable([sigma2irregular, sigma2level])
             else:

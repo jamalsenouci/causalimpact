@@ -1,3 +1,9 @@
+## v0.2.1 (2022-05-06)
+
+### Fix
+
+- fixed error in report text + formatting
+
 ## v0.2.0 (2022-05-06)
 
 ### Feat

@@ -5,10 +5,6 @@
 ![monthly downloads](https://pepy.tech/badge/causalimpact/month)
 [![DeepSource](https://deepsource.io/gh/jamalsenouci/causalimpact.svg/?label=active+issues&show_trend=true&token=R5aIDSkIId_5THWTAPKccjcH)](https://deepsource.io/gh/jamalsenouci/causalimpact/?ref=repository-badge)
 
-#### TO DO
-
-- Estimation is MLE not Bayesian
-
 #### A Python package for causal inference using Bayesian structural time-series models
 
 This is a port of the R package CausalImpact, see: https://github.com/google/CausalImpact.

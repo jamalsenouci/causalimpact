@@ -34,7 +34,6 @@ jobs:
       - name: Test with tox
         run: |
           tox -- --cov-report=xml
-      - uses: actions/checkout@master
       - uses: codecov/codecov-action@v2
         with:
           token: ${{ secrets.CODE_COV_TOKEN }}

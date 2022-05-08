@@ -37,7 +37,7 @@ jobs:
       - uses: actions/checkout@master
       - uses: codecov/codecov-action@v2
         with:
-          token:${{ secrets.CODE_COV_TOKEN }}
+          token: ${{ secrets.CODE_COV_TOKEN }}
       - name: build
         run: |
           tox -e build

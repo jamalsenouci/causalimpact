@@ -4,7 +4,7 @@
 #
 #    pip-compile
 #
-arviz==0.12.0
+arviz==0.12.1
     # via pymc3
 cachetools==5.0.0
     # via pymc3
@@ -14,17 +14,17 @@ cycler==0.11.0
     # via matplotlib
 deprecat==2.1.1
     # via pymc3
-dill==0.3.4
+dill==0.3.5.1
     # via pymc3
 fastprogress==1.0.2
     # via pymc3
-filelock==3.6.0
+filelock==3.7.1
     # via theano-pymc
 fonttools==4.33.3
     # via matplotlib
 kiwisolver==1.4.2
     # via matplotlib
-matplotlib==3.5.1
+matplotlib==3.5.2
     # via
     #   -r requirements.in
     #   arviz
@@ -44,6 +44,7 @@ numpy==1.22.1
     #   statsmodels
     #   theano-pymc
     #   xarray
+    #   xarray-einstats
 packaging==21.3
     # via
     #   arviz
@@ -65,7 +66,7 @@ pillow==9.1.1
     # via matplotlib
 pymc3==3.11.5
     # via -r requirements.in
-pyparsing==3.0.8
+pyparsing==3.0.9
     # via
     #   matplotlib
     #   packaging
@@ -81,6 +82,7 @@ scipy==1.7.3
     #   pymc3
     #   statsmodels
     #   theano-pymc
+    #   xarray-einstats
 semver==2.13.0
     # via pymc3
 six==1.16.0
@@ -98,6 +100,10 @@ typing-extensions==4.2.0
 wrapt==1.14.1
     # via deprecat
 xarray==2022.3.0
+    # via
+    #   arviz
+    #   xarray-einstats
+xarray-einstats==0.2.2
     # via arviz
 
 # The following packages are considered to be unsafe in a requirements file:

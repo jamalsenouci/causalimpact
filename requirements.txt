@@ -61,7 +61,7 @@ patsy==0.5.2
     # via
     #   pymc3
     #   statsmodels
-pillow==9.1.0
+pillow==9.1.1
     # via matplotlib
 pymc3==3.11.5
     # via -r requirements.in

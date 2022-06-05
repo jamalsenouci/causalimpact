@@ -1,3 +1,11 @@
+## v0.2.3 (2022-06-05)
+
+### Fix
+
+- updated arviz version to avoid UnsatisfiableRequirements
+
+## v0.2.2 (2022-05-08)
+
 ## v0.2.1 (2022-05-06)
 
 ### Fix

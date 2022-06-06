@@ -1,3 +1,9 @@
+## v0.2.4 (2022-06-06)
+
+### Fix
+
+- updated dependency in setup.cfg
+
 ## v0.2.3 (2022-06-05)
 
 ### Fix

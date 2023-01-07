@@ -4,4 +4,4 @@ dependencies:
   - numpy
   - statsmodels
   - matplotlib
-  - pymc3
+  - pymc

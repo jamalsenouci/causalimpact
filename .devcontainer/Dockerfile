@@ -13,7 +13,7 @@ RUN if [ "${INSTALL_NODE}" = "true" ]; then su vscode -c "umask 0002 && . /usr/l
 COPY requirements.txt /tmp/pip-tmp/
 RUN conda install mamba -n base -c conda-forge
 # install package dependencies
-RUN conda install -r /tmp/pip-tmp/requirements.txt -c conda-forge && rm -rf /tmp/py-tmp
+RUN conda install --file /tmp/pip-tmp/requirements.txt -c conda-forge && rm -rf /tmp/py-tmp
 #RUN conda install --file /tmp/pip-tmp/requirements.txt -c conda-forge && rm -rf /tmp/py-tmp
 # install dev dependencies
 RUN mamba install pytest pytest-cov tox mock commitizen pre-commit pip-tools jupyter -c conda-forge

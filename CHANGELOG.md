@@ -1,3 +1,11 @@
+## v0.2.5 (2023-01-07)
+
+### Fix
+
+- update pypi in actions on new tag
+- fixes #43
+- update to pymc5
+
 ## v0.2.4 (2022-06-06)
 
 ### Fix

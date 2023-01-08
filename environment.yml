@@ -1,5 +1,7 @@
 name: binder
 dependencies:
+  - python
+  - compilers
   - pandas
   - numpy
   - statsmodels

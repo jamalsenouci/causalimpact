@@ -354,8 +354,10 @@ class CausalImpact:
             "niter": 1000,
             "standardize_data": True,
             "prior_level_sd": 0.01,
-            "nseasons": 1,
-            "season_duration": 1,
+            "level": False,
+            "trend": False,
+            "seasonal": None,
+            "freq_seasonal": None,
             "dynamic_regression": False,
         }
 

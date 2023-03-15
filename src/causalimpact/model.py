@@ -63,7 +63,8 @@ def construct_model(data, model_args=None):
     observations_ill_conditioned(y)
 
     # LocalLevel specification of statespace
-    ss = {"endog": y.values, "level": "llevel"}
+    ss = {"endog": y.values, "level": model_args.get("level"), "trend": model_args.get("trend"),
+          "seasonal": model_args.get("seasonal"), "freq_seasonal": model_args.get("freq_seasonal")}
 
     # No regression?
     if len(data.columns) > 1:

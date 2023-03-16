@@ -85,7 +85,9 @@ def construct_model(data, model_args=None):
         else:
             raise NotImplementedError()
     mod = UnobservedComponents(**ss)
-    
+    print(f"Model endogenous series name: {mod.endog_names}")
+    print(f"Model exogenous series name(s): {mod.exog_names}")
+    print(f"Model state names are: {mod.state_names}")
     print(f"Model parameter names are: {mod.param_names}")
     print(f"Model start parameters are: {mod.start_params}")
     print(f"Model state names are: {mod.state_names}")

@@ -63,8 +63,18 @@ def construct_model(data, model_args=None):
     observations_ill_conditioned(y)
 
     # LocalLevel specification of statespace
-    ss = {"endog": y.values, "level": model_args.get("level"), "trend": model_args.get("trend"),
-          "seasonal": model_args.get("seasonal"), "freq_seasonal": model_args.get("freq_seasonal")}
+    ss = {"endog": y.values, 
+          "level": model_args.get("level"), 
+          "trend": model_args.get("trend"),
+          "seasonal": model_args.get("seasonal"), 
+          "freq_seasonal": model_args.get("freq_seasonal")
+         }
+    ss_copy=ss.copy()
+    _ = ss_copy.pop('endog');
+    print('================================================================================================')
+    print('================================ Beginning CausalImpact Analysis ===============================')
+    print('================================================================================================')
+    print(f"Model inputs are: {ss_copy}")
 
     # No regression?
     if len(data.columns) > 1:
@@ -75,6 +85,11 @@ def construct_model(data, model_args=None):
         else:
             raise NotImplementedError()
     mod = UnobservedComponents(**ss)
+    
+    print(f"Model parameter names are: {mod.param_names}")
+    print(f"Model start parameters are: {mod.start_params}")
+    print(f"Model state names are: {mod.state_names}")
+    print('================================================================================================')
     return mod
 
 
@@ -197,7 +212,8 @@ def model_fit(model, estimation, model_args):
     if estimation == "MLE":
         trained_model = model.fit(maxiter=model_args["niter"])
         model_results = ModelResults(model, trained_model, estimation)
-        return model_results
+        return model_results, trained_model.filter_results.loglikelihood_burn # This defines the index after to start plotting due to approximate diffuse start
+    
     elif estimation == "pymc":
         loglike = Loglike(model)
         with pm.Model():
@@ -229,4 +245,5 @@ def model_fit(model, estimation, model_args):
         # Construct results using these posterior means as parameter values
         results = model.smooth(params)
         model_results = ModelResults(model, results, estimation)
-        return model_results
+        
+        return model_results, 0

@@ -693,10 +693,14 @@ class CausalImpact:
                 )
             )
         else:
-            stmt5 = """The probability of obtaining this effect by
-                        chance is p = ", round(p, 3), "). This means the effect may
-                        be spurious and would generally not be considered
-                        statistically significant.""".format()
+            stmt5 = textwrap.dedent(
+                """The probability of obtaining this effect by
+                chance is large (Bayesian one-sided tail-area
+                probability {p}). This means the effect may
+                be spurious and would generally not be considered
+                statistically significant.""".format(p=np.round(p_value, 3)
+                )
+            )
 
         print(textwrap.fill(stmt, width=width))
         print("\n")

@@ -183,9 +183,7 @@ class CausalImpact:
             post_period = [pd.to_datetime(date) for date in post_period]
             is_datetime64_dtype(pre_period)
         # if index is not datetime then error if datetime pre and post is passed
-        elif is_datetime64_dtype(
-            pd.Series(pre_period)
-        ) or is_datetime64_dtype(
+        elif is_datetime64_dtype(pd.Series(pre_period)) or is_datetime64_dtype(
             pd.Series(post_period)
         ):
             raise ValueError(

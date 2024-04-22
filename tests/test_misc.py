@@ -1,6 +1,5 @@
 """Tests for misc module."""
 
-
 import unittest.mock as mock
 import numpy as np
 import pandas as pd

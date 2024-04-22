@@ -1,6 +1,5 @@
 """Unit Tests for model module"""
 
-
 import pytest
 import unittest.mock as mock
 import numpy as np

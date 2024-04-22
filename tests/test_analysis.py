@@ -1,6 +1,5 @@
 """Unit Tests for analysis module."""
 
-
 import os
 import re
 from tempfile import mkdtemp

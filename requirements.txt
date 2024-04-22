@@ -82,7 +82,7 @@ pandas==1.5.2
     #   xarray
 patsy==0.5.3
     # via statsmodels
-pillow==10.0.1
+pillow==10.3.0
     # via matplotlib
 pymc==5.0.1
     # via -r requirements.in

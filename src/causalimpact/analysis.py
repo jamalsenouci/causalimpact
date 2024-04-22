@@ -695,7 +695,8 @@ class CausalImpact:
                 """The probability of obtaining this effect by
                 chance is p = {p}. This means the effect may
                 be spurious and would generally not be considered
-                statistically significant.""".format(p=np.round(p_value, 3)
+                statistically significant.""".format(
+                    p=np.round(p_value, 3)
                 )
             )
 
